@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-16 20:28 UTC",
+ "as_of": "2026-10-16 23:00 UTC",
  "nfl": {
   "2026_06_WAS_SF": {
    "SF": 0.775,
@@ -34,7 +34,7 @@
    "HOU": 0.435
   },
   "2026_06_CHI_ATL": {
-   "ATL": 0.49,
+   "ATL": 0.485,
    "CHI": 0.515
   },
   "2026_06_BAL_CLE": {
@@ -60,7 +60,7 @@
    "Nebraska": 0.295
   },
   "Penn State@Michigan": {
-   "Michigan": 0.675,
+   "Michigan": 0.665,
    "Penn State": 0.325
   },
   "Washington@Purdue": {
