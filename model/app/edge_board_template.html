@@ -107,6 +107,23 @@ input[type="number"], select { font: inherit; background: var(--panel-2); color:
 .combo .head { display: flex; justify-content: space-between; gap: 8px; font-family: var(--display); font-size: 18px; font-weight: 600; }
 .combo ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
 .method p { max-width: 68ch; }
+.guide { display: grid; gap: 14px; }
+@media (min-width: 980px) { .guide-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; } .guide-top .shot { position: sticky; top: 150px; } }
+.shot { min-width: 0; }
+.shot .frame { border: 1px dashed var(--line); border-radius: 10px; padding: 10px; background: var(--bg); }
+.shot .cap { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+.shot .card { pointer-events: none; }
+.co { position: relative; }
+.mk { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--info); color: var(--bg); font: 600 11px/1 var(--body); margin-right: 5px; vertical-align: 1px; flex: none; }
+.num .mk { position: absolute; top: -7px; left: -7px; margin: 0; box-shadow: 0 0 0 2px var(--bg); }
+.steps { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.steps li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; align-items: start; }
+.steps li .mk { margin-top: 2px; }
+.steps h4 { margin: 0 0 2px; font-family: var(--display); font-size: 17px; font-weight: 600; letter-spacing: .02em; }
+.steps p { margin: 0 0 4px; max-width: 68ch; }
+.ex { background: var(--panel-2); border-radius: 6px; padding: 6px 9px; font-variant-numeric: tabular-nums; font-size: 12.5px; margin-top: 4px; }
+.guide table td, .guide table th { white-space: normal; }
+.guide h2 { margin-top: 6px; }
 .src { font-size: 12px; color: var(--muted); }
 [data-x] { cursor: pointer; }
 .num[data-x] { position: relative; border: 1px solid transparent; }
@@ -141,6 +158,7 @@ span[data-x][aria-expanded="true"], .chip[data-x][aria-expanded="true"], .kv .h[
       <button role="tab" data-section="parlays" aria-selected="false">Parlays</button>
       <button role="tab" data-section="ratings" aria-selected="false">Ratings</button>
       <button role="tab" data-section="method" aria-selected="false">Method & record</button>
+      <button role="tab" data-section="guide" aria-selected="false">How to read</button>
       <button role="tab" data-section="info" aria-selected="false">Info</button>
     </div>
   </div>
@@ -153,6 +171,7 @@ span[data-x][aria-expanded="true"], .chip[data-x][aria-expanded="true"], .kv .h[
   <section id="sec-parlays" hidden></section>
   <section id="sec-ratings" hidden></section>
   <section id="sec-method" hidden></section>
+  <section id="sec-guide" hidden></section>
   <section id="sec-info" hidden></section>
 </main>
 
@@ -477,6 +496,89 @@ function renderInfo() {
     <h2>Off-schedule refresh</h2>
     <p>Run the workflow from the Actions tab, or ask Claude. The schedule ends Monday; extend it to Week 7 by editing <code>.github/workflows/rebuild.yml</code> or asking Claude.</p></div>`;
 }
+function renderGuide() {
+  const host = document.getElementById('sec-guide');
+  const pool = allViews('nfl').filter(v => !v.final && v.hasLine);
+  const v = pool.find(x => x.id === 'BAL@CLE') || pool.find(x => x.tier !== 'PASS') || pool[0];
+  if (!v) { host.innerHTML = '<p class="note">No upcoming game to use as an example.</p>'; return; }
+  const g = v.g, H = g.home, A = g.away; const fav = x => x > 0 ? H : A; const abs = x => Math.abs(x).toFixed(1);
+  const pickHome = v.edge > 0; const pick = pickHome ? H : A;
+  const pc = pickHome ? v.pHomeCover : 1 - v.pHomeCover;
+  const mk = n => `<span class="mk">${n}</span>`;
+  const bookLine = (team, homeLine) => `${team} ${fmtSpread(team === H ? -homeLine : homeLine)}`;
+  const qbd = g.qb_adj_home - g.qb_adj_away, inj = g.inj_adj_home - g.inj_adj_away, gap = g.rating_home - g.rating_away;
+  const kal = v.kalshi ? v.kalshi[H] : null;
+  const shot = `<div class="card">
+    <div class="meta"><span>${mk(1)}${kickoff('nfl', g)}</span><span><span class="chip ${v.tier}">${v.tier}</span>${g.qb_risk ? ' <span class="chip risk">QB risk ' + g.qb_risk + '</span>' : ''}</span></div>
+    <h3>${mk(2)}${A} <small>at</small> ${H}</h3>
+    <div class="qbs">${g.away_qb} · ${g.home_qb}</div>
+    <div class="nums">
+      <div class="num co">${mk(3)}<div class="l">Model</div><div class="v">${H} ${fmtSpread(-v.model)}</div><div class="s">pure prior ${fmtSpread(-g.model_spread_pure)}</div></div>
+      <div class="num co">${mk(4)}<div class="l">Market <span class="chip ${v.src === 'live' ? 'live' : 'snap'}">${v.src}</span></div><div class="v">${H} ${fmtSpread(-v.mkt)}</div><div class="s">${v.total ? 'O/U ' + v.total : ''}${v.open !== null ? ' · opened ' + fmtSpread(-v.open) + ' home' : ''}</div></div>
+      <div class="num co">${mk(5)}<div class="l">Edge</div><div class="v ${cls(v.edge)}">${sign(v.edge)} ${pick}</div><div class="s">cover ${pct1(pc)} on ${pick}</div></div>
+    </div>
+    <div class="probs">${mk(6)}<span>Win ${H}: model <b>${pct(v.pHomeModel)}</b></span><span>blend <b>${pct(v.pHomeBlend)}</b></span><span>market <b>${pct(v.pHomeMkt)}</b></span>${kal !== null ? `<span>Kalshi <b>${H} ${pct(kal)}</b></span>` : ''}</div>
+    <div class="actions">${mk(7)}<div class="seg"><button>${A}</button><button aria-pressed="true">${H}</button></div><button class="btn small">+ ${bookLine(pick, v.mkt)}</button><button class="btn small">+ ${pick} ML</button></div>
+    <div class="intel">${mk(8)}<span style="color:var(--info)">Intelligence</span></div>
+  </div>`;
+  host.innerHTML = `<div class="guide method">
+  <div class="guide-top">
+    <div class="shot"><div class="cap">Example card · ${A} at ${H} · figures from the latest rebuild</div><div class="frame">${shot}</div>
+      <p class="note">This is a picture of a real card from the Board tab; the numbered markers match the walkthrough. On the Board itself every number can also be tapped for a short explanation.</p></div>
+    <div>
+      <h2>Walking through the card</h2>
+      <ol class="steps">
+        <li>${mk(1)}<div><h4>Kickoff and tier</h4><p>When the game starts, then the tier. The tier only measures how far the model and the sportsbook disagree: <b>PLAY</b> means ${TIERS.nfl.play}+ points in the NFL (${TIERS.ncaa.play}+ in college), <b>LEAN</b> ${TIERS.nfl.lean}+ (${TIERS.ncaa.lean}+), <b>PASS</b> anything smaller. It is not a confidence score. A red <b>QB risk</b> chip appears when a listed starting quarterback is out, doubtful or missed practice.</p></div></li>
+        <li>${mk(2)}<div><h4>Matchup and quarterbacks</h4><p>Away team first, home team second, with the quarterback the model assumes will start for each. If the starter changes, the model line changes (see step 8).</p></div></li>
+        <li>${mk(3)}<div><h4>Model line</h4><p>What the model thinks the spread should be, written the way a sportsbook writes it, from the home team's side. <b>${H} ${fmtSpread(-v.model)}</b> means the model expects <b>${fav(v.model)} to win by about ${abs(v.model)}</b>.</p>
+          <p>The smaller "pure prior" number is a variant that leans harder on this season's play-by-play and less on the market's opinion. When both versions point the same way relative to the book, the read is sturdier.</p></div></li>
+        <li>${mk(4)}<div><h4>Market line</h4><p>The sportsbook's spread right now, same home-team view: <b>${H} ${fmtSpread(-v.mkt)}</b> means ${H} is ${v.mkt > 0 ? 'favored by' : 'getting'} ${abs(v.mkt)}, so the betting market expects <b>${fav(v.mkt)} by ${abs(v.mkt)}</b>. The chip says whether the number is <b>live</b> (fetched when you opened the page) or the <b>snapshot</b> from the last rebuild. O/U is the total-points line. "Opened" is the first number the book posted${v.open !== null && Math.abs(v.mkt - v.open) >= 0.5 ? `; this line has moved ${abs(v.mkt - v.open)} points toward ${fav(v.mkt - v.open)} since then, which is money or news pushing it` : ''}.</p></div></li>
+        <li>${mk(5)}<div><h4>Edge</h4><p><b>Edge = model line − market line</b>, in points, labeled with the team it favors. Here the model says ${fav(v.model)} by ${abs(v.model)} and the market says ${fav(v.mkt)} by ${abs(v.mkt)}: a <b>${abs(v.edge)}-point</b> gap in <b>${pick}</b>'s favor. Put plainly, the model thinks a bet on ${pick} at the current line is getting about ${abs(v.edge)} points more than it should.</p>
+          <p>"Cover ${pct1(pc)}" is the estimated chance ${pick} beats the spread. A standard −110 bet needs <b>52.4%</b> to break even, so this is the number to hold against that line.</p></div></li>
+        <li>${mk(6)}<div><h4>Win probabilities</h4><p>Chance ${H} wins the game outright, four ways: <b>model</b> (the model line alone), <b>market</b> (what the spread implies), <b>blend</b> (${Math.round(100 * ALPHA.nfl)}% market, ${Math.round(100 * (1 - ALPHA.nfl))}% model in the NFL; ${Math.round(100 * ALPHA.ncaa)}% market in college) and <b>Kalshi</b> (real-money prediction-market price${kal !== null ? `; ${pct(kal)} here` : ', when a market exists'}). The blend is the number used for stakes and parlays because the market has been the better forecaster over hundreds of games.</p></div></li>
+        <li>${mk(7)}<div><h4>Side and bet buttons</h4><p>The toggle picks a side (it starts on the model's side). The buttons add that side's spread or moneyline to your parlay slip at the bottom of the screen. One leg per game.</p></div></li>
+        <li>${mk(8)}<div><h4>Intelligence</h4><p>Opens the breakdown behind the model line: each team's power rating, the quarterback and injury adjustments, home field, rest and travel, the injury list, and the "if the backup starts" line when a QB is in doubt. The pieces add up to the model line in step 3.</p></div></li>
+      </ol>
+    </div>
+  </div>
+
+  <h2>The model versus the line, step by step</h2>
+  <p>Every spread on this site is shown from the <b>home team's side</b>, in sportsbook notation: a minus sign means favored, a plus sign means getting points. "${H} −3" means ${H} must win by more than 3 to cover; "${H} +3" means ${H} covers if it wins or loses by fewer than 3.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Piece</th><th>This game</th><th>How it is built</th></tr>
+    <tr><td>Power ratings</td><td>${A} ${sign(g.rating_away)}, ${H} ${sign(g.rating_home)} → ${fav(gap)} by ${abs(gap)} on a neutral field</td><td>Points better or worse than an average team, from opponent-adjusted passing and rushing EPA blended with the ratings the betting market implies</td></tr>
+    <tr><td>Home field</td><td>${sign(g.hfa)} to ${H}</td><td>League average plus a venue term</td></tr>
+    <tr><td>Quarterbacks</td><td>${sign(qbd)} to ${H}</td><td>This week's starters valued against the quarterbacks who produced each team's numbers</td></tr>
+    <tr><td>Injuries</td><td>${sign(inj)} to ${H}</td><td>Starters on the injury report, weighted by position and status, versus each team's usual injury burden</td></tr>
+    <tr><td>Rest and travel</td><td>${sign(g.rest_adj + g.travel_adj)}</td><td>Time zones crossed; rest tested and set to zero</td></tr>
+    <tr><td><b>Model line</b></td><td><b>${fav(v.model)} by ${abs(v.model)}</b> (${H} ${fmtSpread(-v.model)})</td><td>Sum of the rows above</td></tr>
+    <tr><td><b>Market line</b></td><td><b>${fav(v.mkt)} by ${abs(v.mkt)}</b> (${H} ${fmtSpread(-v.mkt)})</td><td>The sportsbook's number</td></tr>
+    <tr><td><b>Edge</b></td><td><b>${sign(v.edge)} toward ${pick}</b></td><td>Model minus market</td></tr>
+  </table></div>
+  <div class="ex">Worked example: ${bookLine(pick, v.mkt)} at −110. The model thinks the fair line is ${bookLine(pick, v.model)}, so it believes the bet is worth about ${abs(v.edge)} points of cushion. Blending ${Math.round(100 * (1 - ALPHA.nfl))}% model and ${Math.round(100 * ALPHA.nfl)}% market turns that cushion into a cover chance of ${pct1(pc)}, against a 52.4% breakeven${pc > 0.53 ? ', a modest positive expectation' : pc > 0.524 ? ', a thin edge over the vig' : '. That is right at breakeven: the disagreement is real, but once the market gets most of the weight it does not clear the vig on its own. This is why tiers flag disagreements and the cover chance decides whether a bet is worth it'}.</div>
+
+  <h3>How to judge an edge</h3>
+  <p><b>Size matters, up to a point.</b> Over 448 NFL games in 2024–25, edges of 2.5–4 points covered 54% against the closing line, edges under 1 point were a coin flip, and edges of 4+ were no better than 2.5–4, because the biggest gaps are often the model missing something the market knows.</p>
+  <p><b>Why the edge exists matters more.</b> An edge driven by a quarterback change or a late injury the line hasn't absorbed is the most trustworthy kind. An edge that comes only from the power ratings is the model disagreeing with a market that has more information.</p>
+  <p><b>Watch the line move.</b> If the line moves toward the model after it opens, the market is agreeing with it (in Weeks 4–5 the line moved toward the model's side in about two of every three games that moved). If it moves away, the market knows something; the edge shrinks or flips.</p>
+  <p><b>Openers versus current lines.</b> The model did best against opening lines. By kickoff the market has priced most news, so a LEAN at the opener can be a PASS at the close.</p>
+  <p><b>College is different.</b> The college model has no injury or quarterback data and only about six games per team, and its big disagreements lost this season. Read college edges as "look closer", not "bet".</p>
+
+  <h3>Probabilities and parlays</h3>
+  <p>All probabilities assume the final margin lands on a bell curve around the expected margin, with a typical miss of about ${SIGMA.nfl} points in the NFL and ${SIGMA.ncaa} in college. A parlay's win chance multiplies its legs' chances: three legs at 53% each is 0.53 × 0.53 × 0.53 ≈ 15%. <b>Fair odds</b> is the payout that would make that break-even; <b>expected value</b> is win chance × book payout − 1, so a positive number means the price beats the estimate. Most parlays sit slightly negative, because the −110 vig compounds with every leg.</p>
+
+  <h3>Before you bet: a short checklist</h3>
+  <ul>
+    <li>Is the market chip <b>live</b>, or are you reading a snapshot? Compare with your book's current number.</li>
+    <li>Recompute the edge against <b>your</b> line: model line minus the line you can actually get.</li>
+    <li>Open Intelligence: is the edge coming from a QB or injury change, or only from ratings?</li>
+    <li>Is a <b>QB risk</b> chip showing? Check the "if the backup starts" line.</li>
+    <li>Does Kalshi agree with the model or with the book?</li>
+    <li>Cover chance above 52.4% at −110 is the bar; stakes stay small (quarter-Kelly, 3% cap).</li>
+  </ul>
+  <p class="note">For analysis only; no outcome is guaranteed.</p>
+  </div>`;
+}
 function renderSlip() {
   const legs = state.legs; document.getElementById('slipCount').textContent = legs.length;
   if (legs.length >= 2) { const st = parlayStats(legs); document.getElementById('slipProb').textContent = pct1(st.p); document.getElementById('slipOdds').textContent = `fair ${decimalToAmerican(st.fair)} · book ${decimalToAmerican(st.dec)} · EV ${(100 * st.ev).toFixed(1)}%`; }
@@ -490,8 +592,8 @@ function renderBanner() {
   if (!LIVE_FETCH || !state.fetchedAt) document.getElementById('status').textContent = 'Rebuilt ' + ptTime(DATA.generated_at);
   b.innerHTML = `<div class="banner">${anyLive ? 'Odds refreshed ' + state.fetchedAt.toLocaleTimeString() + ' (' + bits + ').' : (LIVE_FETCH ? `Lines and prices are the <b>snapshot from the model rebuild ${ptTime(DATA.generated_at)}</b>${state.fetchedAt ? '; the live feeds did not answer (' + bits + ')' : '; checking live feeds…'}.` : `Lines, totals and prediction-market prices are the <b>snapshot built ${ptTime(DATA.generated_at)}</b>. This copy runs in a sandbox that blocks calls to outside sites; the live version is at ${PAGES_URL}`)} <b>Tap any number, chip or label</b> (the ? tiles, dotted text) for a plain-language explanation using that game's figures.</div>`;
 }
-function renderAll() { renderBanner(); renderBoard(); renderBets(); renderParlays(); renderRatings(); renderMethod(); renderInfo(); renderSlip(); }
-function showSection(sec) { state.section = sec; for (const s of ['board', 'bets', 'parlays', 'ratings', 'method', 'info']) document.getElementById('sec-' + s).hidden = s !== sec;
+function renderAll() { renderBanner(); renderBoard(); renderBets(); renderParlays(); renderRatings(); renderMethod(); renderGuide(); renderInfo(); renderSlip(); }
+function showSection(sec) { state.section = sec; for (const s of ['board', 'bets', 'parlays', 'ratings', 'method', 'guide', 'info']) document.getElementById('sec-' + s).hidden = s !== sec;
   document.querySelectorAll('[data-section]').forEach(b => b.setAttribute('aria-selected', b.dataset.section === sec)); }
 
 // ---------- tap-to-explain ----------
@@ -662,7 +764,7 @@ async function refresh() {
 document.querySelectorAll('[data-league]').forEach(b => b.addEventListener('click', () => { state.league = b.dataset.league; document.querySelectorAll('[data-league]').forEach(x => x.setAttribute('aria-selected', x === b)); renderBoard(); renderBets(); renderRatings(); }));
 document.querySelectorAll('[data-section]').forEach(b => b.addEventListener('click', () => showSection(b.dataset.section)));
 document.getElementById('slipOpen').addEventListener('click', () => { showSection('parlays'); renderParlays(); window.scrollTo({ top: 0 }); });
-try { const h = location.hash.replace('#', ''); if (['board', 'bets', 'parlays', 'ratings', 'method', 'info'].includes(h)) state.section = h; } catch (e) {}
+try { const h = location.hash.replace('#', ''); if (['board', 'bets', 'parlays', 'ratings', 'method', 'guide', 'info'].includes(h)) state.section = h; } catch (e) {}
 renderAll(); showSection(state.section);
 if (LIVE_FETCH) { refresh(); setInterval(() => { if (document.visibilityState === 'visible') refresh(); }, 120000); }
 </script>
