@@ -1,12 +1,12 @@
 {
- "as_of": "2026-10-16 19:30 UTC",
+ "as_of": "2026-10-16 20:28 UTC",
  "nfl": {
   "2026_06_WAS_SF": {
    "SF": 0.775,
    "WAS": 0.225
   },
   "2026_06_DAL_GB": {
-   "GB": 0.535,
+   "GB": 0.515,
    "DAL": 0.475
   },
   "2026_06_LAC_KC": {
@@ -14,30 +14,78 @@
    "LAC": 0.215
   },
   "2026_06_BUF_LV": {
-   "BUF": 0.685,
-   "LV": 0.305
+   "LV": 0.325,
+   "BUF": 0.675
   },
   "2026_06_ARI_LA": {
    "LA": 0.875,
    "ARI": 0.125
   },
   "2026_06_PIT_TB": {
-   "PIT": 0.555,
-   "TB": 0.445
+   "TB": 0.435,
+   "PIT": 0.565
   },
   "2026_06_CAR_PHI": {
-   "PHI": 0.51,
-   "CAR": 0.49
+   "PHI": 0.375,
+   "CAR": 0.625
+  },
+  "2026_06_HOU_JAX": {
+   "JAX": 0.565,
+   "HOU": 0.435
+  },
+  "2026_06_CHI_ATL": {
+   "ATL": 0.49,
+   "CHI": 0.515
+  },
+  "2026_06_BAL_CLE": {
+   "CLE": 0.385,
+   "BAL": 0.615
+  },
+  "2026_06_TEN_IND": {
+   "IND": 0.745,
+   "TEN": 0.255
+  },
+  "2026_06_NYJ_NE": {
+   "NE": 0.755,
+   "NYJ": 0.245
+  },
+  "2026_06_NO_NYG": {
+   "NYG": 0.495,
+   "NO": 0.505
   }
  },
  "ncaa": {
   "Nebraska@Oregon": {
-   "Oregon": 0.7,
-   "Nebraska": 0.3
+   "Oregon": 0.695,
+   "Nebraska": 0.295
   },
   "Penn State@Michigan": {
    "Michigan": 0.675,
    "Penn State": 0.325
+  },
+  "Washington@Purdue": {
+   "Purdue": 0.595,
+   "Washington": 0.405
+  },
+  "Ohio State@Indiana": {
+   "Indiana": 0.415,
+   "Ohio State": 0.585
+  },
+  "Auburn@Georgia": {
+   "Georgia": 0.905,
+   "Auburn": 0.095
+  },
+  "Alabama@Tennessee": {
+   "Tennessee": 0.255,
+   "Alabama": 0.745
+  },
+  "Florida State@Miami": {
+   "Miami": 0.925,
+   "Florida State": 0.075
+  },
+  "Notre Dame@BYU": {
+   "BYU": 0.215,
+   "Notre Dame": 0.785
   }
  }
 }
