@@ -1,0 +1,668 @@
+<title>Edge Board</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a sticky header with league + section tabs over a single scrolling column of game cards;
+   a bottom slip bar keeps the parlay in reach on phones. Dark-first terminal look: slate ground, amber for edges. */
+:root {
+  --bg: #121820; --panel: #1a222d; --panel-2: #212b38; --line: #2d3947; --fg: #e8edf3; --muted: #93a1b3;
+  --accent: #f0b35a; --accent-ink: #1a1304; --good: #5fcf8a; --warn: #f2c14e; --bad: #ef6b6b; --info: #7cb8ff;
+  --display: "Barlow Condensed", "Arial Narrow", Impact, sans-serif; --body: "IBM Plex Sans", "Segoe UI", Helvetica, Arial, sans-serif;
+  --mono: "IBM Plex Mono", Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) {
+  --bg: #f3f1ec; --panel: #ffffff; --panel-2: #f6f3ed; --line: #ddd7cc; --fg: #1d2129; --muted: #5d6673;
+  --accent: #b9741a; --accent-ink: #ffffff; --good: #1f8f4e; --warn: #a66f00; --bad: #c43d3d; --info: #2466b8; color-scheme: light; } }
+:root[data-theme="light"] {
+  --bg: #f3f1ec; --panel: #ffffff; --panel-2: #f6f3ed; --line: #ddd7cc; --fg: #1d2129; --muted: #5d6673;
+  --accent: #b9741a; --accent-ink: #ffffff; --good: #1f8f4e; --warn: #a66f00; --bad: #c43d3d; --info: #2466b8; color-scheme: light; }
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 14px; line-height: 1.45; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+header.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--bg); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding-block: 10px 4px; }
+.brand h1 { font-family: var(--display); font-weight: 700; font-size: 28px; letter-spacing: .02em; margin: 0; text-transform: uppercase; }
+.brand h1 span { color: var(--accent); }
+.status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); display: inline-block; }
+.dot.live { background: var(--good); box-shadow: 0 0 0 3px color-mix(in srgb, var(--good) 25%, transparent); }
+.dot.partial { background: var(--warn); }
+button { font: inherit; cursor: pointer; }
+.btn { background: var(--panel-2); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+.btn:focus-visible, .tab:focus-visible, .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+.btn.small { padding: 4px 8px; font-size: 12px; }
+.leagues { display: flex; gap: 6px; padding-block: 6px; }
+.tab { flex: 1; background: transparent; border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 8px; font-family: var(--display); font-size: 18px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.tab[aria-selected="true"] { background: var(--panel); color: var(--fg); border-color: var(--accent); }
+.sections { display: flex; gap: 14px; overflow-x: auto; padding-block: 6px 10px; scrollbar-width: none; }
+.sections button { background: none; border: 0; color: var(--muted); padding: 2px 0; font-weight: 500; white-space: nowrap; border-bottom: 2px solid transparent; }
+.sections button[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
+main { padding-block: 12px 110px; }
+.note { font-size: 12px; color: var(--muted); }
+.banner { background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; padding: 10px 12px; margin-bottom: 12px; font-size: 13px; }
+.banner.bad { border-left-color: var(--bad); }
+.grid { display: grid; gap: 10px; }
+@media (min-width: 900px) { .grid.cards { grid-template-columns: 1fr 1fr; } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; }
+.card .meta { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
+.card h3 { margin: 4px 0 2px; font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: .01em; }
+.card h3 small { font-size: 14px; color: var(--muted); font-family: var(--body); font-weight: 500; }
+.rank { color: var(--accent); font-family: var(--mono); font-size: 13px; margin-right: 2px; }
+.qbs { font-size: 12px; color: var(--muted); }
+.nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+.num { background: var(--panel-2); border-radius: 6px; padding: 6px 8px; min-width: 0; }
+.num .l { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.num .v { font-family: var(--display); font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.num .s { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.probs { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.probs b { font-weight: 600; }
+.chip { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.chip.PLAY { background: var(--accent); color: var(--accent-ink); }
+.chip.LEAN { background: color-mix(in srgb, var(--accent) 28%, transparent); color: var(--accent); }
+.chip.PASS { background: var(--panel-2); color: var(--muted); }
+.chip.NOLINE { background: var(--panel-2); color: var(--muted); }
+.chip.risk { background: color-mix(in srgb, var(--bad) 30%, transparent); color: var(--bad); }
+.chip.live { background: color-mix(in srgb, var(--good) 25%, transparent); color: var(--good); }
+.chip.snap { background: var(--panel-2); color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button { background: transparent; border: 0; color: var(--muted); padding: 5px 9px; font-size: 12px; }
+.seg button[aria-pressed="true"] { background: var(--panel-2); color: var(--fg); font-weight: 600; }
+.intel { margin-top: 8px; border-top: 1px dashed var(--line); padding-top: 8px; font-size: 12.5px; }
+.intel summary { cursor: pointer; color: var(--info); font-weight: 500; }
+.kv { display: grid; grid-template-columns: auto 1fr 1fr; gap: 3px 10px; margin-top: 6px; font-variant-numeric: tabular-nums; }
+.kv .h { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+.kv div { min-width: 0; }
+.pos { color: var(--good); } .neg { color: var(--bad); }
+.inj { margin-top: 6px; color: var(--muted); }
+.inj b { color: var(--fg); font-weight: 500; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; font-size: 12.5px; }
+th, td { text-align: left; padding: 5px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+td.r, th.r { text-align: right; }
+.tablewrap { overflow-x: auto; }
+h2 { font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase; margin: 14px 0 8px; }
+h2:first-child { margin-top: 0; }
+.slip { position: fixed; left: 0; right: 0; bottom: 0; z-index: 9; background: var(--panel); border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom, 0px); }
+.slip .in { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-block: 10px; }
+.slip .big { font-family: var(--display); font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.legs { display: grid; gap: 6px; }
+.leg { display: flex; justify-content: space-between; gap: 8px; align-items: center; background: var(--panel-2); border-radius: 6px; padding: 6px 8px; font-size: 13px; }
+.leg .x { background: none; border: 0; color: var(--muted); font-size: 16px; padding: 0 4px; }
+.parlay-sum { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+@media (min-width: 560px) { .parlay-sum { grid-template-columns: repeat(4, 1fr); } }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0; }
+input[type="number"], select { font: inherit; background: var(--panel-2); color: var(--fg); border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+.gpick { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.gchip { background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); border-radius: 6px; padding: 5px 8px; font-size: 12px; font-variant-numeric: tabular-nums; }
+.gchip[aria-pressed="true"] { background: color-mix(in srgb, var(--accent) 22%, var(--panel-2)); border-color: var(--accent); color: var(--fg); }
+.gchip small { color: var(--muted); font-size: 10.5px; margin-left: 4px; }
+.gchip[aria-pressed="true"] small { color: var(--accent); }
+.combo { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; margin-top: 8px; background: var(--panel); }
+.combo .head { display: flex; justify-content: space-between; gap: 8px; font-family: var(--display); font-size: 18px; font-weight: 600; }
+.combo ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
+.method p { max-width: 68ch; }
+.src { font-size: 12px; color: var(--muted); }
+[data-x] { cursor: pointer; }
+.num[data-x] { position: relative; border: 1px solid transparent; }
+.num[data-x]::after { content: "?"; position: absolute; top: 5px; right: 7px; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--muted); color: var(--muted); font-size: 10px; line-height: 12px; text-align: center; opacity: .8; }
+.num[data-x][aria-expanded="true"] { border-color: var(--accent); }
+.num[data-x][aria-expanded="true"]::after { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+span[data-x], .chip[data-x], th[data-x], .kv .h[data-x] { text-decoration: underline dotted; text-underline-offset: 3px; text-decoration-color: var(--muted); }
+span[data-x][aria-expanded="true"], .chip[data-x][aria-expanded="true"], .kv .h[data-x][aria-expanded="true"] { text-decoration-color: var(--accent); color: var(--accent); }
+.explain { margin-top: 8px; background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; padding: 8px 10px; font-size: 12.5px; line-height: 1.5; position: relative; }
+.explain .t { font-family: var(--display); font-size: 16px; font-weight: 600; letter-spacing: .02em; margin-right: 24px; }
+.explain .close { position: absolute; top: 4px; right: 6px; background: none; border: 0; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 4px; }
+.explain p { margin: 4px 0 0; }
+.explain b { font-weight: 600; }
+.hint { font-size: 11px; color: var(--muted); margin: 0 0 8px; }
+@media (prefers-reduced-motion: no-preference) { .card { transition: border-color .15s; } .card.selected { border-color: var(--accent); } .explain { animation: pop .15s ease-out; } @keyframes pop { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } } }
+.card.selected { border-color: var(--accent); }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">
+      <h1>Edge <span>Board</span></h1>
+      <div class="status"><span class="dot" id="dot"></span><span id="status">Rebuilt</span></div>
+    </div>
+    <div class="leagues" role="tablist">
+      <button class="tab" role="tab" data-league="nfl" aria-selected="true">NFL · Week 6</button>
+      <button class="tab" role="tab" data-league="ncaa" aria-selected="false">NCAA · Sat Oct 17</button>
+    </div>
+    <div class="sections" role="tablist">
+      <button role="tab" data-section="board" aria-selected="true">Board</button>
+      <button role="tab" data-section="bets" aria-selected="false">Best bets</button>
+      <button role="tab" data-section="parlays" aria-selected="false">Parlays</button>
+      <button role="tab" data-section="ratings" aria-selected="false">Ratings</button>
+      <button role="tab" data-section="method" aria-selected="false">Method & record</button>
+      <button role="tab" data-section="info" aria-selected="false">Info</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banner"></div>
+  <section id="sec-board"></section>
+  <section id="sec-bets" hidden></section>
+  <section id="sec-parlays" hidden></section>
+  <section id="sec-ratings" hidden></section>
+  <section id="sec-method" hidden></section>
+  <section id="sec-info" hidden></section>
+</main>
+
+<div class="slip wrap">
+  <div class="in">
+    <div><div class="note">Parlay slip · <span id="slipCount">0</span> legs</div><div class="big" id="slipProb">—</div></div>
+    <div class="note" id="slipOdds"></div>
+    <button class="btn primary" id="slipOpen">Build parlay</button>
+  </div>
+</div>
+
+<script>
+const DATA = __DATA__;
+const LIVE_FETCH = __LIVE__;
+const PAGES_URL = "https://shaaude.github.io/Vegasbetting/";
+const SIGMA = { nfl: DATA.nfl.params.sigma, ncaa: DATA.ncaa.params.sigma };
+const ALPHA = { nfl: DATA.nfl.params.alpha_market, ncaa: DATA.ncaa.params.alpha_market };
+const TIERS = { nfl: { play: DATA.nfl.params.play_pts, lean: DATA.nfl.params.lean_pts }, ncaa: { play: DATA.ncaa.params.play_pts, lean: DATA.ncaa.params.lean_pts } };
+const VIG = 0.045;
+const state = { league: 'nfl', section: 'board', live: { nfl: {}, ncaa: {} }, kalshi: { nfl: {}, ncaa: {} }, poly: { nfl: {}, ncaa: {} },
+  sources: {}, legs: [], nLegs: 3, side: {}, pool: 'tiers', poolGames: null, lockSlip: true, vary: true, legType: 'spread', fetchedAt: null };
+
+// ---------- math ----------
+function ncdf(z) { const t = 1 / (1 + 0.2316419 * Math.abs(z)); const d = 0.3989423 * Math.exp(-z * z / 2);
+  let p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return z > 0 ? 1 - p : p; }
+function americanToDecimal(a) { a = Number(a); if (!a) return null; return a > 0 ? 1 + a / 100 : 1 + 100 / Math.abs(a); }
+function decimalToAmerican(d) { if (!d || d <= 1) return '—'; const a = d >= 2 ? (d - 1) * 100 : -100 / (d - 1); return (a > 0 ? '+' : '') + Math.round(a); }
+function fmtSpread(v) { if (v === null || v === undefined || Number.isNaN(v)) return '—'; const s = Number(v); return (s > 0 ? '+' : '') + s.toFixed(1).replace('.0', ''); }
+function pct(p) { return p === null || p === undefined ? '—' : (100 * p).toFixed(0) + '%'; }
+function pct1(p) { return p === null || p === undefined ? '—' : (100 * p).toFixed(1) + '%'; }
+function sign(v, d = 1) { if (v === null || v === undefined) return '—'; const n = Number(v); return (n > 0 ? '+' : '') + n.toFixed(d); }
+function cls(v) { return v > 0.05 ? 'pos' : v < -0.05 ? 'neg' : ''; }
+
+// ---------- game view model ----------
+function gameId(lg, g) { return lg === 'nfl' ? `${g.away}@${g.home}` : `${g.away}@${g.home}`; }
+function marketFor(lg, g) {
+  const live = state.live[lg][gameId(lg, g)];
+  if (live && live.spread !== null && live.spread !== undefined) return { spread: live.spread, total: live.total, src: 'live', ml: live.ml };
+  const snap = lg === 'nfl' ? g.current_spread : g.market_spread;
+  return { spread: snap, total: g.total ?? g.total_line, src: 'snapshot', ml: null };
+}
+function view(lg, g) {
+  const m = marketFor(lg, g); const s = SIGMA[lg]; const a = ALPHA[lg];
+  const model = g.model_spread; const mkt = m.spread;
+  const hasLine = mkt !== null && mkt !== undefined;
+  const blend = hasLine ? a * mkt + (1 - a) * model : model;
+  const edge = hasLine ? model - mkt : null;
+  const tier = !hasLine ? 'NOLINE' : Math.abs(edge) >= TIERS[lg].play ? 'PLAY' : Math.abs(edge) >= TIERS[lg].lean ? 'LEAN' : 'PASS';
+  const pHomeModel = ncdf(model / s), pHomeBlend = ncdf(blend / s), pHomeMkt = hasLine ? ncdf(mkt / s) : null;
+  const pHomeCover = hasLine ? ncdf((blend - mkt) / s) : null;
+  const pickHome = edge !== null ? edge > 0 : model > 0;
+  const live = state.live[lg][gameId(lg, g)] || {};
+  const k = state.kalshi[lg][gameId(lg, g)] || DATA[lg].kalshi[lg === 'nfl' ? g.game_key : gameId(lg, g)] || null;
+  const poly = state.poly[lg][gameId(lg, g)] || null;
+  // moneyline prices: live book prices if present, else market-implied with vig
+  let mlHome = m.ml && m.ml.home ? americanToDecimal(m.ml.home) : null, mlAway = m.ml && m.ml.away ? americanToDecimal(m.ml.away) : null;
+  if (!mlHome || !mlAway) { const ph = pHomeMkt ?? pHomeModel; mlHome = 1 / Math.min(0.99, ph + VIG / 2); mlAway = 1 / Math.min(0.99, (1 - ph) + VIG / 2); }
+  const final = !!live.final || (g.result !== null && g.result !== undefined);
+  return { g, lg, id: gameId(lg, g), model, mkt, hasLine, blend, edge, tier, pHomeModel, pHomeBlend, pHomeMkt, pHomeCover, pickHome, live, kalshi: k, poly, final,
+    open: lg === 'nfl' ? g.open_spread : null, src: m.src, total: m.total, mlHome, mlAway, s };
+}
+function allViews(lg) { return DATA[lg].games.map(g => view(lg, g)); }
+
+// ---------- legs ----------
+function legFor(v, type, side) {
+  const home = side === 'home';
+  const pCover = home ? v.pHomeCover : 1 - v.pHomeCover;
+  const pWin = home ? v.pHomeBlend : 1 - v.pHomeBlend;
+  const team = home ? v.g.home : v.g.away;
+  if (type === 'spread') {
+    const line = home ? -v.mkt : v.mkt;
+    return { id: `${v.lg}|${v.id}|spread|${side}`, lg: v.lg, game: v.id, team, type, side, label: `${team} ${fmtSpread(line)}`, prob: v.hasLine ? pCover : null, dec: 1 / (0.5 + VIG / 2) };
+  }
+  return { id: `${v.lg}|${v.id}|ml|${side}`, lg: v.lg, game: v.id, team, type, side, label: `${team} ML (${decimalToAmerican(home ? v.mlHome : v.mlAway)})`, prob: pWin, dec: home ? v.mlHome : v.mlAway };
+}
+function toggleLeg(leg) {
+  const i = state.legs.findIndex(l => l.id === leg.id);
+  if (i >= 0) state.legs.splice(i, 1);
+  else { state.legs = state.legs.filter(l => l.game !== leg.game || l.lg !== leg.lg); state.legs.push(leg); }
+  renderSlip(); renderBoard(); if (state.section === 'parlays') renderParlays();
+}
+function parlayStats(legs) { const p = legs.reduce((a, l) => a * (l.prob ?? 0.5), 1); const dec = legs.reduce((a, l) => a * l.dec, 1); return { p, dec, ev: p * dec - 1, fair: 1 / p }; }
+
+// ---------- rendering ----------
+function el(tag, attrs = {}, html = '') { const e = document.createElement(tag); for (const [k, v] of Object.entries(attrs)) { if (k === 'class') e.className = v; else e.setAttribute(k, v); } e.innerHTML = html; return e; }
+function kickoff(lg, g) {
+  if (lg === 'nfl') return g.gameday === '2026-10-15' ? 'Thu Oct 15' : g.gameday === '2026-10-19' ? 'Mon Oct 19' : 'Sun Oct 18';
+  const d = new Date(g.kickoff_utc); return d.toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+}
+function cardHTML(v) {
+  const g = v.g, lg = v.lg; const rk = t => (lg === 'ncaa' && (t === g.home ? g.ap_rank_home : g.ap_rank_away)) ? `<span class="rank">#${t === g.home ? g.ap_rank_home : g.ap_rank_away}</span>` : '';
+  const score = v.live.state ? `<span>${v.live.state}${v.live.scoreText ? ' · ' + v.live.scoreText : ''}</span>` : (v.final ? `<span>Final · ${g.home} ${sign(g.result, 0)}</span>` : '');
+  const side = state.side[v.id] || (v.pickHome ? 'home' : 'away');
+  const pickTeam = side === 'home' ? g.home : g.away;
+  const spreadLeg = v.hasLine ? legFor(v, 'spread', side) : null, mlLeg = legFor(v, 'ml', side);
+  const sel = id => state.legs.some(l => l.id === id);
+  const movement = (v.open !== null && v.open !== undefined && v.hasLine) ? `opened ${fmtSpread(-v.open)} home` : '';
+  const edgeTxt = v.edge === null ? '—' : `${sign(v.edge)} ${v.pickHome ? g.home : g.away}`;
+  const kal = v.kalshi ? `Kalshi <b>${g.home} ${pct(v.kalshi[g.home])}</b>` : '';
+  const pol = v.poly ? `Polymarket <b>${g.home} ${pct(v.poly[g.home])}</b>` : '';
+  const risk = g.qb_risk ? `<span class="chip risk" data-x="qbrisk" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">QB risk ${g.qb_risk}</span>` : '';
+  const intel = lg === 'nfl' ? nflIntel(v) : ncaaIntel(v);
+  return `<div class="card ${state.legs.some(l => l.game === v.id && l.lg === lg) ? 'selected' : ''}" data-id="${v.id}">
+    <div class="meta"><span>${kickoff(lg, g)}${lg === 'ncaa' && g.neutral ? ' · neutral' : ''}</span>${score}<span><span class="chip ${v.tier}" data-x="tier" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">${v.tier === 'NOLINE' ? 'no line' : v.tier}</span> ${risk}</span></div>
+    <h3>${rk(g.away)}${g.away} <small>at</small> ${rk(g.home)}${g.home}</h3>
+    ${lg === 'nfl' ? `<div class="qbs">${g.away_qb} · ${g.home_qb}${g.qb_status_away ? ' · ' + g.away + ' QB ' + g.qb_status_away : ''}${g.qb_status_home ? ' · ' + g.home + ' QB ' + g.qb_status_home : ''}</div>` : ''}
+    <div class="nums">
+      <div class="num" data-x="model" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0"><div class="l">Model</div><div class="v">${g.home} ${fmtSpread(-v.model)}</div><div class="s">${lg === 'nfl' ? 'pure prior ' + fmtSpread(-g.model_spread_pure) : 'blend ' + fmtSpread(-v.blend)}</div></div>
+      <div class="num" data-x="market" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0"><div class="l">Market <span class="chip ${v.src === 'live' ? 'live' : 'snap'}">${v.src}</span></div><div class="v">${v.hasLine ? g.home + ' ' + fmtSpread(-v.mkt) : '—'}</div><div class="s">${v.total ? 'O/U ' + v.total + (movement ? ' · ' + movement : '') : movement}</div></div>
+      <div class="num" data-x="edge" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0"><div class="l">Edge</div><div class="v ${cls(v.edge)}">${edgeTxt}</div><div class="s">cover ${pct1(side === 'home' ? v.pHomeCover : (v.pHomeCover === null ? null : 1 - v.pHomeCover))} on ${pickTeam}</div></div>
+    </div>
+    <div class="probs"><span data-x="pmodel" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">Win ${g.home}: model <b>${pct(v.pHomeModel)}</b></span><span data-x="pblend" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">blend <b>${pct(v.pHomeBlend)}</b></span>${v.pHomeMkt !== null ? `<span data-x="pmarket" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">market <b>${pct(v.pHomeMkt)}</b></span>` : ''}${kal ? `<span data-x="kalshi" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">${kal}</span>` : ''}${pol ? `<span data-x="poly" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">${pol}</span>` : ''}</div>
+    <div class="explain" hidden></div>
+    <div class="actions">
+      <div class="seg" role="group" aria-label="side"><button aria-pressed="${side === 'away'}" data-side="away" data-id="${v.id}">${g.away}</button><button aria-pressed="${side === 'home'}" data-side="home" data-id="${v.id}">${g.home}</button></div>
+      ${v.final ? '<span class="note">game over · no legs</span>' : `${spreadLeg ? `<button class="btn small ${sel(spreadLeg.id) ? 'primary' : ''}" data-leg="spread" data-id="${v.id}">${sel(spreadLeg.id) ? '✓ ' : '+ '}${spreadLeg.label}</button>` : ''}
+      <button class="btn small ${sel(mlLeg.id) ? 'primary' : ''}" data-leg="ml" data-id="${v.id}">${sel(mlLeg.id) ? '✓ ' : '+ '}${mlLeg.label}</button>`}
+    </div>
+    <details class="intel"><summary>Intelligence</summary>${intel}</details>
+  </div>`;
+}
+function nflIntel(v) {
+  const g = v.g; const X = k => `data-x="${k}" data-lg="nfl" data-id="${v.id}" role="button" tabindex="0"`;
+  const row = (l, k, a, h, d = 1) => `<div class="h" ${X(k)}>${l}</div><div class="${cls(a)}">${sign(a, d)}</div><div class="${cls(h)}">${sign(h, d)}</div>`;
+  let s = `<p class="hint">Tap any label or number for what it means.</p><div class="kv"><div class="h">Component</div><div class="h">${g.away}</div><div class="h">${g.home}</div>
+    ${row('Power rating (pts vs avg)', 'rating', g.rating_away, g.rating_home)}${row('QB starter adj', 'qbadj', g.qb_adj_away, g.qb_adj_home)}${row('Injury adj (vs own sample)', 'injadj', g.inj_adj_away, g.inj_adj_home)}
+    <div class="h" ${X('hfa')}>Home field / venue</div><div></div><div>${sign(g.hfa)}</div><div class="h" ${X('rest')}>Rest · travel</div><div></div><div>${sign(g.rest_adj)} · ${sign(g.travel_adj)}</div></div>`;
+  s += `<div class="inj"><b>Model line</b> ${g.home} ${fmtSpread(-g.model_spread)} (market-anchored) · pure-EPA variant ${fmtSpread(-g.model_spread_pure)} · opener ${g.open_spread !== null ? g.home + ' ' + fmtSpread(-g.open_spread) : '—'}</div>`;
+  if (g.qb_risk) s += `<div class="inj"><b>If the listed starter sits</b> (${g.qb_risk === 'HOME' ? g.home : g.qb_risk === 'AWAY' ? g.away : 'both'} → backup ${g.qb_risk === 'HOME' ? g.backup_qb_home : g.backup_qb_away}): ${g.home} ${fmtSpread(-g.model_spread_if_backup)}</div>`;
+  s += `<div class="inj"><b>${g.away} injuries</b>: ${g.inj_detail_away || 'none flagged'}</div><div class="inj"><b>${g.home} injuries</b>: ${g.inj_detail_home || 'none flagged'}</div>`;
+  if (g.result !== null && g.result !== undefined) s += `<div class="inj"><b>Final</b>: home margin ${sign(g.result, 0)}</div>`;
+  return s;
+}
+function ncaaIntel(v) {
+  const g = v.g; const X = k => `data-x="${k}" data-lg="ncaa" data-id="${v.id}" role="button" tabindex="0"`;
+  const row = (l, k, a, h, d = 1) => `<div class="h" ${X(k)}>${l}</div><div class="${cls(a)}">${sign(a, d)}</div><div class="${cls(h)}">${sign(h, d)}</div>`;
+  let s = `<p class="hint">Tap any label or number for what it means.</p><div class="kv"><div class="h">Component</div><div class="h">${g.away}</div><div class="h">${g.home}</div>
+    ${row('Power rating (pts vs FBS avg)', 'rating', g.rating_away, g.rating_home)}${row('Passing EPA value', 'pass', g.pass_pts_away, g.pass_pts_home)}${row('Rushing EPA value', 'rush', g.rush_pts_away, g.rush_pts_home)}
+    ${row('Market-implied rating', 'mprior', g.market_prior_away, g.market_prior_home)}<div class="h" ${X('elo')}>CFBD Elo</div><div>${g.elo_away ?? '—'}</div><div>${g.elo_home ?? '—'}</div>
+    <div class="h" ${X('hfa')}>Home field</div><div></div><div>${sign(g.hfa)}</div></div>`;
+  s += `<div class="inj"><b>Line source</b>: ${g.source || 'none'}${g.note ? ' · ' + g.note : ''}. No college injury or QB feed is available, so those layers are off.</div>`;
+  return s;
+}
+function renderBoard() {
+  const lg = state.league; const host = document.getElementById('sec-board'); const vs = allViews(lg);
+  host.innerHTML = `<div class="grid cards">${vs.map(cardHTML).join('')}</div>`;
+  host.querySelectorAll('[data-side]').forEach(b => b.addEventListener('click', () => { state.side[b.dataset.id] = b.dataset.side; renderBoard(); }));
+  host.querySelectorAll('[data-leg]').forEach(b => b.addEventListener('click', () => {
+    const v = vs.find(x => x.id === b.dataset.id); const side = state.side[v.id] || (v.pickHome ? 'home' : 'away'); toggleLeg(legFor(v, b.dataset.leg, side)); }));
+}
+function renderBets() {
+  const lg = state.league; const host = document.getElementById('sec-bets'); const vs = allViews(lg).filter(v => v.hasLine && v.tier !== 'PASS' && !v.final).sort((a, b) => Math.abs(b.edge) - Math.abs(a.edge));
+  const bt = DATA[lg].backtest;
+  const warn = lg === 'ncaa'
+    ? `<div class="banner bad">College model, read before acting: on 195 games this season the market line beat the model (MAE ${bt.mae_market} vs ${bt.mae_model}), and the model's own disagreements of 3+ points went <b>${bt.ats_tiers}</b> against the spread. Treat these as leans for context, not as positive-expectation plays. The cover probabilities below are market-weighted (90%) for that reason.</div>`
+    : `<div class="banner">NFL model: beat the opener and the close on Weeks 4–5 (MAE 8.26 vs 8.47 / 8.81; 18-10-3 ATS vs close), but over 448 games in 2024–25 it is ${bt.ats_all} against closing lines. The edge is in openers and QB/injury news; probabilities below are market-weighted (80%), so stakes stay small by design.</div>`;
+  const rows = vs.map(v => { const side = v.pickHome ? 'home' : 'away'; const leg = legFor(v, 'spread', side); const ml = legFor(v, 'ml', side);
+    const k = v.kalshi ? ` · Kalshi ${v.pickHome ? v.g.home : v.g.away} ${pct(v.kalshi[v.pickHome ? v.g.home : v.g.away])}` : '';
+    return `<div class="card"><div class="meta"><span>${kickoff(lg, v.g)}</span><span class="chip ${v.tier}">${v.tier}</span></div>
+      <h3>${leg.label} <small>· ${sign(v.edge)} pts vs ${v.src} line</small></h3>
+      <div class="probs"><span data-x="cover" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">Cover <b>${pct1(leg.prob)}</b> (breakeven 52.4%)</span><span data-x="mlprob" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">Win outright <b>${pct(ml.prob)}</b> at ${decimalToAmerican(ml.dec)}</span>${k ? `<span data-x="kalshi" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">${k}</span>` : ''}</div>
+      <div class="explain" hidden></div>
+      <div class="note">${why(v)}</div>
+      <div class="actions"><button class="btn small ${state.legs.some(l => l.id === leg.id) ? 'primary' : ''}" data-add="spread" data-id="${v.id}">+ ${leg.label}</button><button class="btn small ${state.legs.some(l => l.id === ml.id) ? 'primary' : ''}" data-add="ml" data-id="${v.id}">+ ${ml.team} ML</button></div></div>`; }).join('');
+  host.innerHTML = warn + (rows || '<p class="note">No game clears the lean threshold against the current line.</p>');
+  host.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { const v = vs.find(x => x.id === b.dataset.id); toggleLeg(legFor(v, b.dataset.add, v.pickHome ? 'home' : 'away')); renderBets(); }));
+}
+function why(v) {
+  const g = v.g, lg = v.lg; const parts = [];
+  if (lg === 'nfl') {
+    const gap = g.rating_home - g.rating_away; parts.push(`Ratings favor ${gap > 0 ? g.home : g.away} by ${Math.abs(gap).toFixed(1)} on a neutral field`);
+    const q = g.qb_adj_home - g.qb_adj_away; if (Math.abs(q) > 0.75) parts.push(`QB situation worth ${sign(q)} to ${g.home} (${g.away_qb} vs ${g.home_qb})`);
+    const i = g.inj_adj_home - g.inj_adj_away; if (Math.abs(i) > 0.75) parts.push(`injury report nets ${sign(i)} to ${g.home}`);
+    if (g.qb_risk) parts.push(`if the flagged starter sits the line moves to ${g.home} ${fmtSpread(-g.model_spread_if_backup)}`);
+    if (v.open !== null && v.hasLine) { const mv = v.mkt - v.open; if (Math.abs(mv) >= 0.5) parts.push(`market has moved ${Math.abs(mv).toFixed(1)} toward ${mv > 0 ? g.home : g.away} since the opener`); }
+  } else {
+    const gap = g.rating_home - g.rating_away; parts.push(`EPA ratings favor ${gap > 0 ? g.home : g.away} by ${Math.abs(gap).toFixed(1)} neutral; market-implied ratings say ${(g.market_prior_home - g.market_prior_away) > 0 ? g.home : g.away} by ${Math.abs(g.market_prior_home - g.market_prior_away).toFixed(1)}`);
+    if (g.elo_home && g.elo_away) parts.push(`Elo gap ${Math.round(g.elo_home - g.elo_away)} (${(g.elo_home - g.elo_away) > 0 ? g.home : g.away})`);
+  }
+  return parts.join(' · ') + '.';
+}
+function renderParlays() {
+  const host = document.getElementById('sec-parlays');
+  const legs = state.legs; const st = parlayStats(legs);
+  const legsHTML = legs.length ? `<div class="legs">${legs.map(l => `<div class="leg"><span>${l.lg.toUpperCase()} · ${l.label}</span><span><span data-x="leg" data-lg="${l.lg}" data-id="${l.game}" data-leg="${l.id}" role="button" tabindex="0">${pct1(l.prob)} · ${decimalToAmerican(l.dec)}</span> <button class="x" data-rm="${l.id}" aria-label="remove">×</button></span></div>`).join('')}</div><div class="explain" hidden></div>` : '<p class="note">Add legs from any game card (spread or moneyline, NFL and NCAA can mix). One leg per game. Tap any figure on this page for a plain-language explanation.</p>';
+  const summary = legs.length >= 2 ? `<div class="parlay-sum">
+      <div class="num" data-x="pwin" role="button" tabindex="0"><div class="l">Est. win chance</div><div class="v">${pct1(st.p)}</div><div class="s">model × market blend, legs treated as independent</div></div>
+      <div class="num" data-x="pfair" role="button" tabindex="0"><div class="l">Fair odds</div><div class="v">${decimalToAmerican(st.fair)}</div><div class="s">${st.fair.toFixed(2)}x</div></div>
+      <div class="num" data-x="ppay" role="button" tabindex="0"><div class="l">Est. book payout</div><div class="v">${decimalToAmerican(st.dec)}</div><div class="s">${st.dec.toFixed(2)}x (−110 spreads, ML as priced)</div></div>
+      <div class="num" data-x="pev" role="button" tabindex="0"><div class="l">Expected value</div><div class="v ${cls(st.ev * 100)}">${(100 * st.ev).toFixed(1)}%</div><div class="s">per unit staked</div></div></div><div class="explain" hidden></div>` : '';
+  const pool = state.pool;
+  host.innerHTML = `<h2>Your parlay</h2>${legsHTML}${summary}${legs.length ? '<div class="actions"><button class="btn small" id="clearLegs">Clear slip</button></div>' : ''}
+    <h2>Auto-build</h2>
+    <p class="note">Choose the games that may go into a parlay, how many legs, and whether the legs already on your slip must stay in. Each game contributes its model side (flip a side on the Board tab); one leg per game.</p>
+    <div class="controls"><button class="btn small" data-qs="tiers">PLAY + LEAN only</button><button class="btn small" data-qs="nfl">All NFL</button><button class="btn small" data-qs="ncaa">All NCAA</button><button class="btn small" data-qs="all">Everything</button><button class="btn small" data-qs="none">Clear</button></div>
+    <div class="gpick" id="gpick">${gamePickHTML()}</div>
+    <div class="controls"><label>Legs <input type="number" id="nLegs" min="2" max="8" value="${state.nLegs}" style="width:64px"></label>
+      <label>Leg type <select id="legType"><option value="spread" ${state.legType === 'spread' ? 'selected' : ''}>Spreads</option><option value="ml" ${state.legType === 'ml' ? 'selected' : ''}>Moneylines</option><option value="mix" ${state.legType === 'mix' ? 'selected' : ''}>Best of each</option></select></label>
+      <label><input type="checkbox" id="lockSlip" ${state.lockSlip ? 'checked' : ''}> keep my slip legs</label>
+      <label><input type="checkbox" id="vary" ${state.vary ? 'checked' : ''}> vary the games</label>
+      <button class="btn primary small" id="autoBuild">Build top 5</button></div>
+    <div id="combos" class="note">Combinations are ranked by expected value from the blended probabilities. With "vary the games" on, each listed parlay shares at most half its free legs with the ones above it, so you see different games rather than the same four legs reshuffled.</div>`;
+  host.querySelectorAll('[data-rm]').forEach(b => b.addEventListener('click', () => { state.legs = state.legs.filter(l => l.id !== b.dataset.rm); renderSlip(); renderParlays(); renderBoard(); }));
+  const c = document.getElementById('clearLegs'); if (c) c.addEventListener('click', () => { state.legs = []; renderSlip(); renderParlays(); renderBoard(); });
+  document.getElementById('nLegs').addEventListener('change', e => { state.nLegs = Math.max(2, Math.min(8, Number(e.target.value) || 3)); });
+  document.getElementById('legType').addEventListener('change', e => { state.legType = e.target.value; });
+  document.getElementById('lockSlip').addEventListener('change', e => { state.lockSlip = e.target.checked; });
+  document.getElementById('vary').addEventListener('change', e => { state.vary = e.target.checked; });
+  host.querySelectorAll('[data-qs]').forEach(b => b.addEventListener('click', () => { quickSelect(b.dataset.qs); document.getElementById('gpick').innerHTML = gamePickHTML(); bindPick(); }));
+  bindPick();
+  document.getElementById('autoBuild').addEventListener('click', autoBuild);
+}
+function poolKey(lg, id) { return lg + '|' + id; }
+function ensurePool() { if (!state.poolGames) { state.poolGames = new Set(); quickSelect('tiers'); } }
+function quickSelect(mode) {
+  state.poolGames = new Set();
+  for (const lg of ['nfl', 'ncaa']) for (const v of allViews(lg)) {
+    if (!v.hasLine || v.final) continue;
+    const take = mode === 'all' || (mode === 'tiers' && v.tier !== 'PASS') || mode === lg;
+    if (take) state.poolGames.add(poolKey(lg, v.id));
+  }
+}
+function shortName(lg, team) { return lg === 'nfl' ? team : team.replace('Mississippi State', 'Miss St').replace('Michigan State', 'Mich St').replace('Oklahoma State', 'Okla St').replace('Arizona State', 'Ariz St').replace('Florida State', 'Fla St').replace('Penn State', 'Penn St').replace('Notre Dame', 'ND').replace('Wake Forest', 'Wake').replace('Northwestern', 'NW').replace('Ohio State', 'Ohio St').replace('Texas Tech', 'Tx Tech').replace('California', 'Cal').replace('Washington', 'Wash'); }
+function gamePickHTML() {
+  ensurePool(); const out = [];
+  for (const lg of ['nfl', 'ncaa']) for (const v of allViews(lg)) {
+    const k = poolKey(lg, v.id); const side = state.side[v.id] || (v.pickHome ? 'home' : 'away'); const team = side === 'home' ? v.g.home : v.g.away;
+    const dis = !v.hasLine || v.final; const on = state.poolGames.has(k) && !dis;
+    out.push(`<button class="gchip" aria-pressed="${on}" data-pick="${k}" ${dis ? 'disabled' : ''}>${shortName(lg, v.g.away)} @ ${shortName(lg, v.g.home)}<small>${dis ? (v.final ? 'final' : 'no line') : shortName(lg, team) + ' · ' + (v.tier === 'NOLINE' ? '' : v.tier.toLowerCase())}</small></button>`);
+  }
+  return out.join('');
+}
+function bindPick() { document.querySelectorAll('[data-pick]').forEach(b => b.addEventListener('click', () => { const k = b.dataset.pick; if (state.poolGames.has(k)) state.poolGames.delete(k); else state.poolGames.add(k); b.setAttribute('aria-pressed', state.poolGames.has(k)); })); }
+function candidateLegs(excludeGames) {
+  ensurePool(); const type = state.legType; const out = [];
+  for (const lg of ['nfl', 'ncaa']) for (const v of allViews(lg)) {
+    if (!state.poolGames.has(poolKey(lg, v.id))) continue;
+    if (!v.hasLine || v.final) continue;
+    if (excludeGames.has(poolKey(lg, v.id))) continue;
+    const side = state.side[v.id] || (v.pickHome ? 'home' : 'away');
+    const s = legFor(v, 'spread', side), m = legFor(v, 'ml', side);
+    if (type === 'spread') out.push(s); else if (type === 'ml') out.push(m); else out.push((s.prob * s.dec) >= (m.prob * m.dec) ? s : m);
+  }
+  return out;
+}
+function autoBuild() {
+  const n = state.nLegs; const host = document.getElementById('combos');
+  const locked = state.lockSlip ? state.legs.slice(0, n) : [];
+  const lockedGames = new Set(locked.map(l => poolKey(l.lg, l.game)));
+  const free = n - locked.length;
+  const cands = candidateLegs(lockedGames).map(l => ({ ...l, ev: l.prob * l.dec - 1 })).sort((a, b) => b.ev - a.ev);
+  if (free <= 0) { const st = parlayStats(locked); host.innerHTML = `<p class="note">Your slip already has ${locked.length} legs: ${pct1(st.p)} to win, fair ${decimalToAmerican(st.fair)}, est. book ${decimalToAmerican(st.dec)}. Raise the leg count or untick "keep my slip legs" to build around other games.</p>`; return; }
+  if (cands.length < free) { host.innerHTML = `<p class="note">Only ${cands.length} eligible games are selected (after the ${locked.length} on your slip); add games to the pool above or lower the leg count.</p>`; return; }
+  const top = cands.slice(0, 22);   // bound the enumeration; already EV-sorted
+  const combos = []; const idx = [];
+  (function rec(start, depth) { if (depth === free) { const legs = locked.concat(idx.map(i => top[i])); combos.push({ legs, freeIds: idx.map(i => top[i].id), ...parlayStats(legs) }); return; }
+    for (let i = start; i < top.length; i++) { idx.push(i); rec(i + 1, depth + 1); idx.pop(); if (combos.length > 60000) return; } })(0, 0);
+  combos.sort((a, b) => b.ev - a.ev);
+  const maxShared = state.vary ? Math.floor(free / 2) : free; const chosen = [];
+  for (const c of combos) { if (chosen.length >= 5) break;
+    const ok = chosen.every(d => c.freeIds.filter(x => d.freeIds.includes(x)).length <= maxShared);
+    if (ok) chosen.push(c); }
+  host.innerHTML = chosen.map((c, i) => `<div class="combo"><div class="head"><span>Parlay ${i + 1} · ${n} legs</span><span>${pct1(c.p)} · ${decimalToAmerican(c.dec)}</span></div>
+    <ul>${c.legs.map(l => `<li>${l.lg.toUpperCase()} ${l.label} <span class="note">(${pct1(l.prob)}${lockedGames.has(poolKey(l.lg, l.game)) ? ' · from your slip' : ''})</span></li>`).join('')}</ul>
+    <div class="note">Fair ${decimalToAmerican(c.fair)} · est. book ${decimalToAmerican(c.dec)} · EV ${(100 * c.ev).toFixed(1)}%</div>
+    <div class="actions"><button class="btn small" data-use="${i}">Use this slip</button></div></div>`).join('') +
+    `<p class="note">${combos.length.toLocaleString()} combinations of ${top.length} eligible legs were scored. Win chances multiply the per-leg blended probabilities and assume independence; same-game legs are excluded. Payouts assume −110 on spreads and the shown moneyline prices (live book prices when the odds feed answers, otherwise market-implied).</p>`;
+  host.querySelectorAll('[data-use]').forEach(b => b.addEventListener('click', () => { state.legs = chosen[Number(b.dataset.use)].legs.map(l => ({ ...l })); renderSlip(); renderParlays(); renderBoard(); window.scrollTo({ top: 0, behavior: 'smooth' }); }));
+}
+function renderRatings() {
+  const lg = state.league; const host = document.getElementById('sec-ratings'); const p = DATA[lg].power;
+  const head = lg === 'nfl' ? '<tr><th>#</th><th>Team</th><th class="r">Rating</th><th class="r">Pass</th><th class="r">Rush</th><th class="r">Market prior</th><th class="r">G</th></tr>'
+    : '<tr><th>#</th><th>Team</th><th class="r">AP</th><th class="r">Rating</th><th class="r">Pass</th><th class="r">Rush</th><th class="r">Market prior</th><th class="r">G</th></tr>';
+  const body = p.map((t, i) => lg === 'nfl' ? `<tr><td>${i + 1}</td><td>${t.team}</td><td class="r">${sign(t.rating)}</td><td class="r">${sign(t.pass_pts)}</td><td class="r">${sign(t.rush_pts)}</td><td class="r">${sign(t.market_prior)}</td><td class="r">${t.games}</td></tr>`
+    : `<tr><td>${i + 1}</td><td>${t.team}</td><td class="r">${t.ap_rank ?? ''}</td><td class="r">${sign(t.rating)}</td><td class="r">${sign(t.pass_pts)}</td><td class="r">${sign(t.rush_pts)}</td><td class="r">${sign(t.market_prior)}</td><td class="r">${t.games}</td></tr>`).join('');
+  const head2 = head.replace('<th class="r">Rating</th>', `<th class="r" data-x="rating" data-lg="${lg}" role="button" tabindex="0">Rating</th>`).replace('<th class="r">Pass</th>', `<th class="r" data-x="pass" data-lg="${lg}" role="button" tabindex="0">Pass</th>`).replace('<th class="r">Rush</th>', `<th class="r" data-x="rush" data-lg="${lg}" role="button" tabindex="0">Rush</th>`).replace('<th class="r">Market prior</th>', `<th class="r" data-x="mprior" data-lg="${lg}" role="button" tabindex="0">Market prior</th>`);
+  host.innerHTML = `<h2>${lg === 'nfl' ? 'NFL power ratings through Week 5' : 'FBS power ratings through Week 7 (top 60)'}</h2><p class="note">Points relative to a league-average team on a neutral field. Tap a column heading for what it measures.</p><div class="explain" hidden></div><div class="tablewrap"><table>${head2}${body}</table></div>`;
+}
+function renderMethod() {
+  const host = document.getElementById('sec-method'); const n = DATA.nfl, c = DATA.ncaa;
+  const w45 = n.weeks45.map(r => `<tr><td>${r.week}</td><td>${r.away} @ ${r.home}</td><td class="r">${fmtSpread(-r.model_spread)}</td><td class="r">${fmtSpread(-r.open_spread)}</td><td class="r">${fmtSpread(-r.close_spread)}</td><td class="r">${sign(r.result, 0)}</td><td>${r.pick_open}</td><td>${r.ats_open > 0 ? 'W' : r.ats_open < 0 ? 'L' : 'P'}</td></tr>`).join('');
+  host.innerHTML = `<div class="method">
+    <h2>How the lines are made</h2>
+    <p>Each team gets opponent-adjusted passing and rushing EPA ratings (Bayesian ridge over every snap, garbage time removed), shrunk toward the power rating implied by the spreads the market has already posted. The NFL line adds a quarterback value for the named starter against the QBs who produced the team's numbers, a position-weighted injury index from the depth chart and injury report, venue-specific home field, rest and travel. Win and cover probabilities use a normal margin model (σ ${n.params.sigma} NFL, ${c.params.sigma} college) on a blend of model and market (${Math.round(100 * n.params.alpha_market)}% market NFL, ${Math.round(100 * c.params.alpha_market)}% college).</p>
+    <p>Tiers are the raw gap between the model and the market line: PLAY at ${n.params.play_pts}+ points (${c.params.play_pts}+ college), LEAN at ${n.params.lean_pts}+ (${c.params.lean_pts}+). Stake sizing is quarter-Kelly on the blended probability, capped at 3% and zero unless the blended edge clears 3%.</p>
+    <h2>Track record</h2>
+    <p><b>NFL 2024–25 walk-forward</b> (${n.backtest.games} games): model MAE ${n.backtest.mae_model} vs closing line ${n.backtest.mae_market}; picks ${n.backtest.ats_all} against the close. <b>NFL 2026 Weeks 4–5</b> (31 games, out of sample): see the table. <b>College 2026 Weeks 4–7</b> (${c.backtest.games} games): model MAE ${c.backtest.mae_model} vs line ${c.backtest.mae_market}; picks ${c.backtest.ats_all}, and the model's 3+ point disagreements ${c.backtest.ats_tiers}.</p>
+    <div class="tablewrap"><table><tr><th>Wk</th><th>Game</th><th class="r">Model</th><th class="r">Open</th><th class="r">Close</th><th class="r">Final</th><th>Pick</th><th>ATS</th></tr>${w45}</table></div>
+    <p class="note">Lines shown as the home team's number. Weeks 4–5: 16-14-1 vs openers, 18-10-3 vs close, model MAE 8.26 vs open 8.47 and close 8.81.</p>
+    <h2>Data and feeds</h2>
+    <p class="src">Play-by-play and EPA: nflverse (NFL) and sportsdataverse ESPN college pbp. Injury reports and depth charts: nflverse, with Friday rulings for Lamar Jackson (out), Jalen Hurts (out) and Caleb Williams (probable) applied by hand. Openers: DraftKings via SI Betting. Current lines: nflverse (NFL) and ESPN/DraftKings, Covers and SI (college), refreshed at each scheduled rebuild. Prediction markets: Kalshi public market API, captured at each rebuild. Built ${DATA.generated_at}.</p>
+    <p class="src">Nothing here is a guarantee of profit. The model is for analysis; bet within your means.</p></div>`;
+}
+const SCHEDULE = [ // Pacific time; each run starts a few minutes early so the page is fresh by the listed time
+  ['2026-10-16T18:00:00-07:00', 'Fri 6:00 pm', 'Final NFL injury reports'], ['2026-10-16T21:00:00-07:00', 'Fri 9:00 pm', 'Late Friday injury and QB news'],
+  ['2026-10-17T06:00:00-07:00', 'Sat 6:00 am', 'College lines before the 9:00 am kickoffs'], ['2026-10-17T08:00:00-07:00', 'Sat 8:00 am', 'College game morning'],
+  ['2026-10-17T10:00:00-07:00', 'Sat 10:00 am', 'Early college results, midday lines'], ['2026-10-17T12:00:00-07:00', 'Sat 12:00 pm', 'Before the 12:30 kickoffs'],
+  ['2026-10-17T14:00:00-07:00', 'Sat 2:00 pm', 'Afternoon college slate'], ['2026-10-17T16:00:00-07:00', 'Sat 4:00 pm', 'Before the night games'],
+  ['2026-10-17T21:00:00-07:00', 'Sat 9:00 pm', 'College results graded; NFL lines after Saturday moves'],
+  ['2026-10-18T06:00:00-07:00', 'Sun 6:00 am', 'NFL game morning'], ['2026-10-18T08:00:00-07:00', 'Sun 8:00 am', 'Final NFL injury news'],
+  ['2026-10-18T09:30:00-07:00', 'Sun 9:30 am', 'Inactives, about 30 minutes before the 10:00 am kickoffs'],
+  ['2026-10-19T15:00:00-07:00', 'Mon 3:00 pm', 'Before Monday night; Sunday results graded']];
+function ptTime(utcStr) { const d = new Date(utcStr.replace(' UTC', 'Z').replace(' ', 'T')); return isNaN(d) ? utcStr : d.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'short', hour: 'numeric', minute: '2-digit' }) + ' PT'; }
+function nextRun() { const now = Date.now(); const n = SCHEDULE.find(s => new Date(s[0]).getTime() > now); return n ? n[1] + ' PT' : 'none scheduled (ask for a refresh)'; }
+function renderInfo() {
+  const host = document.getElementById('sec-info'); const now = Date.now();
+  const rows = SCHEDULE.map(s => { const past = new Date(s[0]).getTime() <= now; return `<tr><td>${s[1]}</td><td>${s[2]}</td><td>${past ? 'done' : 'scheduled'}</td></tr>`; }).join('');
+  host.innerHTML = `<div class="method">
+    <h2>How this board stays current</h2>
+    <p>The model was last rebuilt <b>${ptTime(DATA.generated_at)}</b> (Kalshi snapshot ${DATA.kalshi_asof ? ptTime(DATA.kalshi_asof) : 'from the same rebuild'}).</p>
+    ${LIVE_FETCH ? `<p><b>Live odds:</b> this hosted page asks ESPN (lines, totals, moneylines, scores), Kalshi and Polymarket for fresh numbers when it opens and every two minutes while it is open. Edges, tiers, probabilities and parlays reprice against whatever comes back. Feed status: ${['espn', 'kalshi', 'polymarket'].map(k => k + ' ' + (state.sources[k] === true ? 'live' : state.sources[k] === false ? 'not answering' : 'checking')).join(', ')}. A feed that refuses browser requests falls back to the rebuild snapshot, and each card's market chip says which you are seeing.</p>`
+      : `<p>This copy is a snapshot: Claude artifact pages run in a sandbox that blocks requests to outside sites, so it cannot fetch odds. The live version, which refreshes odds in your browser, is <b>${PAGES_URL}</b>.</p>`}
+    <p><b>Model rebuilds</b> run on GitHub Actions in the shaaude/Vegasbetting repository: the workflow downloads fresh play-by-play, injury reports and depth charts, re-runs both models and republishes the site. These runs use GitHub's free Actions minutes, not Claude. You can also start one any time from the repository's Actions tab ("Rebuild Edge Board" → Run workflow).</p>
+    <h2>Rebuild schedule</h2>
+    <p class="note">Pacific time. 13 model rebuilds from Friday evening through Monday afternoon, timed to injury reports, inactives and kickoffs. Each starts about ten minutes early so the site is fresh by the listed time. Next: <b>${nextRun()}</b>.</p>
+    <div class="tablewrap"><table><tr><th>When</th><th>Why then</th><th>Status</th></tr>${rows}</table></div>
+    <h2>What each rebuild does</h2>
+    <p>Downloads fresh nflverse and college play-by-play, injury reports, depth charts and schedules; re-runs both models (the college model re-tunes on every run); then rebuilds and commits the page. A run takes about two minutes.</p>
+    <p><b>Not automatic:</b> late QB rulings and Sunday inactives that nflverse has not yet posted. Add them to <code>model/injury_overrides.csv</code> or <code>model/starter_overrides.csv</code> in the repository (edit on GitHub, then run the workflow), or ask Claude to do it.</p>
+    <h2>Usage and cost</h2>
+    <p>Scheduled rebuilds run on GitHub Actions and use no Claude usage; each takes about two minutes of the free Actions allowance. Claude usage only happens when you ask Claude to change the model or the page.</p>
+    <h2>Off-schedule refresh</h2>
+    <p>Run the workflow from the Actions tab, or ask Claude. The schedule ends Monday; extend it to Week 7 by editing <code>.github/workflows/rebuild.yml</code> or asking Claude.</p></div>`;
+}
+function renderSlip() {
+  const legs = state.legs; document.getElementById('slipCount').textContent = legs.length;
+  if (legs.length >= 2) { const st = parlayStats(legs); document.getElementById('slipProb').textContent = pct1(st.p); document.getElementById('slipOdds').textContent = `fair ${decimalToAmerican(st.fair)} · book ${decimalToAmerican(st.dec)} · EV ${(100 * st.ev).toFixed(1)}%`; }
+  else if (legs.length === 1) { document.getElementById('slipProb').textContent = pct1(legs[0].prob); document.getElementById('slipOdds').textContent = 'add another leg'; }
+  else { document.getElementById('slipProb').textContent = '—'; document.getElementById('slipOdds').textContent = ''; }
+}
+function renderBanner() {
+  const b = document.getElementById('banner'); const s = state.sources;
+  const bits = ['espn', 'kalshi', 'polymarket'].map(k => `${k}: ${s[k] === true ? 'live' : s[k] === false ? 'unreachable' : 'pending'}`).join(' · ');
+  const anyLive = LIVE_FETCH && Object.values(s).some(Boolean);
+  if (!LIVE_FETCH || !state.fetchedAt) document.getElementById('status').textContent = 'Rebuilt ' + ptTime(DATA.generated_at);
+  b.innerHTML = `<div class="banner">${anyLive ? 'Odds refreshed ' + state.fetchedAt.toLocaleTimeString() + ' (' + bits + ').' : (LIVE_FETCH ? `Lines and prices are the <b>snapshot from the model rebuild ${ptTime(DATA.generated_at)}</b>${state.fetchedAt ? '; the live feeds did not answer (' + bits + ')' : '; checking live feeds…'}.` : `Lines, totals and prediction-market prices are the <b>snapshot built ${ptTime(DATA.generated_at)}</b>. This copy runs in a sandbox that blocks calls to outside sites; the live version is at ${PAGES_URL}`)} <b>Tap any number, chip or label</b> (the ? tiles, dotted text) for a plain-language explanation using that game's figures.</div>`;
+}
+function renderAll() { renderBanner(); renderBoard(); renderBets(); renderParlays(); renderRatings(); renderMethod(); renderInfo(); renderSlip(); }
+function showSection(sec) { state.section = sec; for (const s of ['board', 'bets', 'parlays', 'ratings', 'method', 'info']) document.getElementById('sec-' + s).hidden = s !== sec;
+  document.querySelectorAll('[data-section]').forEach(b => b.setAttribute('aria-selected', b.dataset.section === sec)); }
+
+// ---------- tap-to-explain ----------
+function bucketLine(lg) {
+  const b = DATA[lg].backtest.buckets || []; const nm = lg === 'nfl' ? '2024–25 NFL (448 games vs the close)' : '2026 college Weeks 4–7 (195 games)';
+  return `Backtest, ${nm}: ` + b.map(x => `${x.lo}–${x.hi === 99 ? '+' : x.hi} pt edges ${x.w}-${x.l} (${pct(x.pct)})`).join(' · ') + '.';
+}
+function explainText(key, lg, id, extra) {
+  const v = id && lg ? allViews(lg).find(x => x.id === id) : null; const g = v ? v.g : null;
+  const H = g ? g.home : '', A = g ? g.away : '';
+  const fav = x => x > 0 ? H : A; const abs = x => Math.abs(x).toFixed(1);
+  const sp = (team, line) => `${team} ${fmtSpread(line)}`;
+  const t = (title, body) => `<span class="t">${title}</span>${body}`;
+  switch (key) {
+    case 'model': {
+      if (!v) return '';
+      const parts = lg === 'nfl'
+        ? [`power ratings ${A} ${sign(g.rating_away)} vs ${H} ${sign(g.rating_home)}`, `home field ${sign(g.hfa)}`, Math.abs(g.qb_adj_home - g.qb_adj_away) > 0.3 ? `QB starters ${sign(g.qb_adj_home - g.qb_adj_away)} to ${H}` : null,
+           Math.abs(g.inj_adj_home - g.inj_adj_away) > 0.3 ? `injury reports ${sign(g.inj_adj_home - g.inj_adj_away)} to ${H}` : null, (g.rest_adj || g.travel_adj) ? `rest and travel ${sign(g.rest_adj + g.travel_adj)}` : null].filter(Boolean)
+        : [`EPA power ratings ${A} ${sign(g.rating_away)} vs ${H} ${sign(g.rating_home)}`, `home field ${sign(g.hfa)}`];
+      return t('Model line', `<p>The model expects <b>${fav(v.model)} to win by ${abs(v.model)}</b> on average, so its line is ${sp(H, -v.model)}. It adds up ${parts.join(', ')}.</p>` +
+        (lg === 'nfl' ? `<p>The main number leans on the market's own power ratings with an EPA tilt; the <b>pure prior</b> variant (${sp(H, -g.model_spread_pure)}) weights this season's play-by-play more heavily. When the two agree the read is more robust.</p>` : `<p>College ratings come from this season's play-by-play only (about six games per team), shrunk toward the ratings the posted spreads imply. Treat them as a second opinion rather than a sharper one.</p>`));
+    }
+    case 'market': {
+      if (!v) return '';
+      if (!v.hasLine) return t('Market line', '<p>No sportsbook line has been captured for this game yet. The page asks ESPN for one every time it refreshes.</p>');
+      const mv = (v.open !== null && v.open !== undefined) ? v.mkt - v.open : null;
+      return t('Market line', `<p>The sportsbook's line is ${sp(H, -v.mkt)}: bettors can take ${H} ${v.mkt > 0 ? 'laying' : 'getting'} ${abs(v.mkt)} points, which means the market's own estimate is <b>${fav(v.mkt)} by ${abs(v.mkt)}</b>.${v.total ? ` The total (over/under) is ${v.total}.` : ''}</p>` +
+        `<p>${v.src === 'live' ? 'This number came from ESPN on the last refresh.' : 'This is the snapshot line captured when the page was built; it updates when the live feed answers.'}${mv !== null ? (Math.abs(mv) >= 0.5 ? ` The game opened ${sp(H, -v.open)}, so money has moved the line ${abs(mv)} points toward ${fav(mv)}.` : ` It opened ${sp(H, -v.open)} and has not moved.`) : ''}</p>`);
+    }
+    case 'edge': {
+      if (!v) return '';
+      if (!v.hasLine) return t('Edge', '<p>Edge needs a market line to compare against; none is available for this game.</p>');
+      const pickTeam = fav(v.edge); const tierTxt = v.tier === 'PLAY' ? 'a PLAY (4+ points NFL, 5+ college)' : v.tier === 'LEAN' ? 'a LEAN (2.5+ points NFL, 3+ college)' : 'below the lean threshold';
+      return t(`Edge ${sign(v.edge)} ${pickTeam}`, `<p><b>Edge = model line minus market line.</b> The model says ${fav(v.model)} by ${abs(v.model)}; the market says ${fav(v.mkt)} by ${abs(v.mkt)}. The gap is ${abs(v.edge)} points in ${pickTeam}'s favor, so the model thinks ${pickTeam} is getting ${abs(v.edge)} points more than it should. That surplus is the value, and it makes this ${tierTxt}.</p>` +
+        `<p>${bucketLine(lg)} ${lg === 'nfl' ? 'Edges are more trustworthy when they come from a QB or injury change the market has not fully priced.' : 'In college the model\'s large disagreements have lost, so an edge here is a flag to look closer, not a reason to bet.'}</p>`);
+    }
+    case 'tier': {
+      if (!v) return '';
+      const rec = (DATA[lg].backtest.buckets || []).map(x => `${x.lo}–${x.hi === 99 ? '+' : x.hi}: ${x.w}-${x.l}`).join(', ');
+      return t(`${v.tier === 'NOLINE' ? 'No line' : v.tier}`, `<p><b>PLAY</b> = model and market disagree by ${TIERS[lg].play}+ points, <b>LEAN</b> = ${TIERS[lg].lean}+ points, <b>PASS</b> = closer than that. Tiers describe the size of the disagreement, not confidence that the bet wins.</p><p>Record by edge size in the backtest: ${rec}. ${lg === 'nfl' ? 'Only the 2.5–4 band has run above the 52.4% breakeven, and only modestly.' : 'The college tiers have lost; use them as leans.'}</p>`);
+    }
+    case 'qbrisk': {
+      if (!v) return '';
+      const who = g.qb_risk === 'HOME' ? `${H}'s ${g.home_qb} (backup ${g.backup_qb_home})` : g.qb_risk === 'AWAY' ? `${A}'s ${g.away_qb} (backup ${g.backup_qb_away})` : 'both listed starters';
+      return t('QB risk', `<p>The listed starter, ${who}, is Out, Doubtful, or missed practice on the latest report. The main model line assumes he plays. If he sits and the #2 quarterback starts, the model line becomes <b>${sp(H, -g.model_spread_if_backup)}</b> (a ${abs(g.model_spread_if_backup - g.model_spread)}-point swing). The market usually reprices this within hours of the news, so compare the current line against both numbers.</p>`);
+    }
+    case 'pmodel': return t('Model win probability', `<p>The chance ${H} wins outright if the model line is right: a normal curve with standard deviation ${SIGMA[lg]} points centered on the model margin (${fav(v.model)} by ${abs(v.model)}) gives ${H} <b>${pct(v.pHomeModel)}</b>. This ignores the market entirely, so it is the most opinionated number on the card.</p>`);
+    case 'pblend': return t('Blended win probability', `<p>Same curve, but centered on a blend of the model and the market line (${Math.round(100 * ALPHA[lg])}% market, ${Math.round(100 * (1 - ALPHA[lg]))}% model${v.hasLine ? `, which lands at ${sp(H, -v.blend)}` : ''}). The market gets most of the weight because it has been the more accurate forecaster in the backtest. <b>This is the number used for stakes and parlays.</b></p>`);
+    case 'pmarket': return t('Market win probability', `<p>What the point spread alone implies: ${fav(v.mkt)} by ${abs(v.mkt)} on the same ${SIGMA[lg]}-point curve gives ${H} <b>${pct(v.pHomeMkt)}</b>. It has no vig in it, so it is a cleaner read than a moneyline price.</p>`);
+    case 'kalshi': { const k = v && v.kalshi; if (!k) return ''; return t('Kalshi price', `<p>On Kalshi, a contract that pays $1 if ${H} wins trades at about ${(100 * k[H]).toFixed(0)}¢, so traders put ${H}'s chance at <b>${pct(k[H])}</b> (${A} ${pct(k[A])}). It is real money changing hands, independent of the sportsbooks, and it moves with news. Compare it with the model (${pct(v.pHomeModel)}) and the spread (${pct(v.pHomeMkt)}): when all three agree there is little to argue about; when they split, the news is usually in the gap.</p>`); }
+    case 'poly': { const p = v && v.poly; if (!p) return ''; return t('Polymarket price', `<p>Polymarket's outcome price for ${H} is ${(100 * p[H]).toFixed(0)}¢, an implied <b>${pct(p[H])}</b> chance. Same idea as Kalshi: a crowd-priced probability to set beside the model and the spread.</p>`); }
+    case 'cover': { if (!v) return ''; const side = v.pickHome ? H : A; const p = v.pickHome ? v.pHomeCover : 1 - v.pHomeCover;
+      return t('Cover probability', `<p>The chance ${side} covers the spread at the current line, using the blended margin. At −110 a bet must win <b>52.4%</b> of the time to break even, so ${pct1(p)} means ${p > 0.524 ? 'a thin positive expectation' : 'no expectation of profit at this price'}. The model's own view would be higher; it is deliberately diluted ${Math.round(100 * ALPHA[lg])}% toward the market.</p>`); }
+    case 'mlprob': { if (!v) return ''; const side = v.pickHome ? H : A; const p = v.pickHome ? v.pHomeBlend : 1 - v.pHomeBlend; const d = v.pickHome ? v.mlHome : v.mlAway;
+      return t('Moneyline', `<p>Chance ${side} wins outright (blended) is ${pct(p)}. The moneyline ${decimalToAmerican(d)} pays ${d.toFixed(2)}x your stake, which needs ${pct1(1 / d)} to break even${v.live.ml ? ' (live book price)' : ' (derived from the spread with typical vig because no live price is available)'}.</p>`); }
+    case 'rating': return t('Power rating', `<p>Points better or worse than an average team on a neutral field. A rating gap of 5 means the better team should win by about 5 before home field. ${lg === 'nfl' ? 'It blends this season\'s opponent-adjusted EPA with the ratings the betting market has implied, adjusted for the named quarterback.' : 'It is built from this season\'s play-by-play, shrunk toward the ratings implied by posted spreads.'}</p>`);
+    case 'pass': return t('Passing value', `<p>Points per game the team is worth through the air on both sides of the ball: offensive EPA per dropback minus EPA allowed per dropback, each adjusted for the opponents faced, converted to points. Positive means the passing matchup helps them.</p>`);
+    case 'rush': return t('Rushing value', `<p>The same measure for running plays: rush EPA gained minus rush EPA allowed, opponent-adjusted, in points per game. It gets less weight than passing because it is less predictive.</p>`);
+    case 'mprior': return t('Market-implied rating', `<p>The rating that best explains the spreads already posted this season (recent weeks weighted more). It is what the betting market, with all its information, thinks the team is worth. The model starts from this number and lets the EPA data nudge it.</p>`);
+    case 'elo': return t('CFBD Elo', `<p>CollegeFootballData's Elo rating entering the game; roughly 22 Elo points equal one point of spread. It is a results-based rating (who beat whom, by how much), useful as a cross-check on the EPA view.</p>`);
+    case 'qbadj': return t('QB starter adjustment', `<p>${g ? `${A} ${sign(g.qb_adj_away)}, ${H} ${sign(g.qb_adj_home)} points.` : ''} Each quarterback has a value in EPA per dropback (shrunk toward replacement level). A team's numbers were produced by whoever actually played; this term is the difference between this week's named starter and that mix, scaled to about 34 dropbacks. A large negative means a backup is starting.</p>`);
+    case 'injadj': return t('Injury adjustment', `<p>${g ? `${A} ${sign(g.inj_adj_away)}, ${H} ${sign(g.inj_adj_home)} points.` : ''} Starters on the injury report are weighted by position (a left tackle or edge rusher counts about a point, a guard a third of that) and by status (Out 100%, Doubtful 80%, Questionable 30%, DNP 50% before the final report). Only the change versus the team's average injury burden this season is applied, so a long-term absence already baked into the team's results is not double-counted.</p>`);
+    case 'hfa': return t('Home field', `<p>${g ? `${sign(g.hfa)} points to ${H}.` : ''} League average home edge (${lg === 'nfl' ? '1.5' : '2.5'} points) ${lg === 'nfl' ? 'plus a venue term from five seasons of home-minus-away margins (Denver, Chicago and Miami gain about a point; Seattle and Arizona lose most of theirs)' : ''}. Neutral-site games get zero.</p>`);
+    case 'rest': return t('Rest and travel', `<p>Rest differential was tested and found worthless in the backtest, so it is set to zero. Travel charges the visitor a quarter point for each time zone crossed beyond the first.</p>`);
+    case 'builder': return t('How the builder picks', `<p>Every eligible game contributes one leg (its model side, or the side you chose on the Board). All combinations of the free legs are scored by expected value, win chance × payout − 1, using the blended probabilities. With "vary the games" on, each listed parlay may share at most half its free legs with the parlays above it, so the five results cover different games instead of reshuffling the same top legs.</p>`);
+    case 'pwin': { const st = parlayStats(state.legs); return t('Parlay win chance', `<p>Every leg must hit. The ${state.legs.length} per-leg probabilities (${state.legs.map(l => pct1(l.prob)).join(' × ')}) multiply to <b>${pct1(st.p)}</b>. Legs are treated as independent, which is why the builder refuses two legs from the same game. These are blended probabilities, so the number is a sober estimate rather than the model's optimistic view.</p>`); }
+    case 'pfair': { const st = parlayStats(state.legs); return t('Fair odds', `<p>The payout that would make this parlay a break-even bet: 1 ÷ ${pct1(st.p)} = ${st.fair.toFixed(2)}x, or ${decimalToAmerican(st.fair)} in American odds. If a book offers more than this, the parlay is priced in your favor.</p>`); }
+    case 'ppay': { const st = parlayStats(state.legs); return t('Estimated book payout', `<p>What a sportsbook would pay: the leg prices multiplied together (${state.legs.map(l => l.dec.toFixed(2)).join(' × ')} = ${st.dec.toFixed(2)}x, ${decimalToAmerican(st.dec)}). Spreads are assumed at −110; moneylines use the live book price when the odds feed answers, otherwise a vig-adjusted price implied by the spread. Check it against your book's actual slip.</p>`); }
+    case 'pev': { const st = parlayStats(state.legs); return t('Expected value', `<p>Average profit per unit staked over many repeats: win chance × payout − 1 = ${pct1(st.p)} × ${st.dec.toFixed(2)} − 1 = <b>${(100 * st.ev).toFixed(1)}%</b>. Positive means the price beats the estimated probability; negative means the book's cut outweighs the edge. Most parlays sit slightly negative because −110 pricing compounds with each leg.</p>`); }
+    case 'leg': { const l = state.legs.find(x => x.id === extra); if (!l) return ''; return t(l.label, `<p>${l.type === 'spread' ? `Chance ${l.team} covers this spread, from the blended margin: <b>${pct1(l.prob)}</b>; priced at −110 (${l.dec.toFixed(2)}x).` : `Chance ${l.team} wins outright, blended: <b>${pct1(l.prob)}</b>; moneyline ${decimalToAmerican(l.dec)} (${l.dec.toFixed(2)}x).`} Tap the × to remove the leg.</p>`); }
+  }
+  return '';
+}
+function closeExplain(panel) { panel.hidden = true; panel.innerHTML = ''; panel.dataset.key = ''; }
+document.querySelector('main').addEventListener('click', e => {
+  const close = e.target.closest('.explain .close'); if (close) { closeExplain(close.closest('.explain')); return; }
+  const src = e.target.closest('[data-x]'); if (!src) return;
+  const scope = src.closest('.card') || src.closest('#sec-parlays') || src.closest('#sec-ratings') || src.closest('section');
+  let panel = null;
+  if (src.closest('.legs')) panel = src.closest('.legs').nextElementSibling;
+  else if (src.closest('.parlay-sum')) panel = src.closest('.parlay-sum').nextElementSibling;
+  else panel = scope.querySelector('.explain');
+  if (!panel || !panel.classList.contains('explain')) return;
+  const key = src.dataset.x + '|' + (src.dataset.id || '') + '|' + (src.dataset.leg || '');
+  scope.querySelectorAll('[data-x][aria-expanded="true"]').forEach(x => x.removeAttribute('aria-expanded'));
+  if (panel.dataset.key === key && !panel.hidden) { closeExplain(panel); return; }
+  const html = explainText(src.dataset.x, src.dataset.lg || state.league, src.dataset.id, src.dataset.leg);
+  if (!html) return;
+  panel.innerHTML = html + '<button class="close" aria-label="close">×</button>'; panel.hidden = false; panel.dataset.key = key; src.setAttribute('aria-expanded', 'true');
+});
+document.querySelector('main').addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-x]')) { e.preventDefault(); e.target.click(); } });
+
+// ---------- live feeds ----------
+function parseDetails(details, homeAbbr, awayAbbr, homeName, awayName) {
+  if (!details) return null; const m = details.match(/^(.+?)\s([+-]?\d+(?:\.\d+)?)$/); if (!m) return details.toUpperCase() === 'EVEN' || details.toUpperCase() === 'PK' ? 0 : null;
+  const fav = m[1].trim(), num = Math.abs(parseFloat(m[2])); const favHome = fav === homeAbbr || fav === homeName || (homeName && homeName.startsWith(fav));
+  const favAway = fav === awayAbbr || fav === awayName || (awayName && awayName.startsWith(fav));
+  if (favHome) return num; if (favAway) return -num; return null;
+}
+async function fetchESPN(lg) {
+  const urls = lg === 'nfl' ? ['https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard']
+    : ['https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20261017&limit=120', 'https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?groups=80&dates=20261016&limit=60'];
+  const out = {};
+  for (const u of urls) {
+    const r = await fetch(u); if (!r.ok) throw new Error('espn ' + r.status); const j = await r.json();
+    for (const ev of j.events || []) { const comp = ev.competitions && ev.competitions[0]; if (!comp) continue;
+      const home = comp.competitors.find(c => c.homeAway === 'home'), away = comp.competitors.find(c => c.homeAway === 'away'); if (!home || !away) continue;
+      let hk, ak; if (lg === 'nfl') { hk = DATA.nfl.espn_abbr[home.team.abbreviation] || home.team.abbreviation; ak = DATA.nfl.espn_abbr[away.team.abbreviation] || away.team.abbreviation; }
+      else { hk = home.team.location; ak = away.team.location; }
+      const key = `${ak}@${hk}`; const o = (comp.odds && comp.odds[0]) || null;
+      let spread = null, total = null, ml = null;
+      if (o) { spread = parseDetails(o.details, home.team.abbreviation, away.team.abbreviation, home.team.location, away.team.location);
+        if (spread === null && typeof o.spread === 'number') spread = -o.spread; total = o.overUnder ?? null;
+        const hm = (o.homeTeamOdds && (o.homeTeamOdds.moneyLine ?? o.homeTeamOdds.current?.moneyLine?.american)) ?? null;
+        const am = (o.awayTeamOdds && (o.awayTeamOdds.moneyLine ?? o.awayTeamOdds.current?.moneyLine?.american)) ?? null;
+        if (hm && am) ml = { home: hm, away: am }; }
+      const st = comp.status && comp.status.type; const final = st && st.completed;
+      out[key] = { spread, total, ml, state: st ? st.shortDetail : '', scoreText: (st && st.state !== 'pre') ? `${ak} ${away.score} – ${hk} ${home.score}` : '', final: !!final };
+    }
+  }
+  return out;
+}
+function kalshiTeamKey(lg, sub) {
+  if (lg === 'nfl') { if (DATA.nfl.cities[sub]) return DATA.nfl.cities[sub]; const k = Object.keys(DATA.nfl.cities).find(c => sub.startsWith(c)); return k ? DATA.nfl.cities[k] : null; }
+  return sub.replace(/\bSt\.$/, 'State').replace(/\bSt\. /, 'State ');
+}
+async function fetchKalshi(lg) {
+  const series = lg === 'nfl' ? 'KXNFLGAME' : 'KXNCAAFGAME'; const tags = lg === 'nfl' ? ['26OCT18', '26OCT19'] : ['26OCT17', '26OCT16'];
+  const r = await fetch(`https://api.elections.kalshi.com/trade-api/v2/markets?series_ticker=${series}&status=open&limit=1000`); if (!r.ok) throw new Error('kalshi ' + r.status);
+  const j = await r.json(); const byEvent = {};
+  for (const m of j.markets || []) { if (!tags.some(t => m.event_ticker.includes(t))) continue;
+    const team = kalshiTeamKey(lg, m.yes_sub_title || ''); if (!team) continue;
+    const price = (m.yes_bid && m.yes_ask) ? (m.yes_bid + m.yes_ask) / 2 : (m.last_price || null); if (price === null) continue;
+    (byEvent[m.event_ticker] = byEvent[m.event_ticker] || {})[team] = price > 1 ? price / 100 : price; }
+  const out = {};
+  for (const v of allViews(lg)) { for (const teams of Object.values(byEvent)) { const names = Object.keys(teams);
+      const hm = names.find(t => t === v.g.home || v.g.home.startsWith(t) || t.startsWith(v.g.home)), am = names.find(t => t === v.g.away || v.g.away.startsWith(t) || t.startsWith(v.g.away));
+      if (hm && am) { out[v.id] = { [v.g.home]: teams[hm], [v.g.away]: teams[am] }; break; } } }
+  return out;
+}
+async function fetchPolymarket(lg) {
+  const tag = lg === 'nfl' ? 'nfl' : 'college-football';
+  const r = await fetch(`https://gamma-api.polymarket.com/events?tag_slug=${tag}&active=true&closed=false&limit=200`); if (!r.ok) throw new Error('poly ' + r.status);
+  const evs = await r.json(); const out = {};
+  for (const v of allViews(lg)) { const names = lg === 'nfl' ? Object.entries(DATA.nfl.nicknames).filter(([, a]) => a === v.g.home || a === v.g.away).map(([n, a]) => [n, a]) : [[v.g.home, v.g.home], [v.g.away, v.g.away]];
+    for (const ev of evs) { const t = (ev.title || ''); if (!names.every(([n]) => t.includes(n))) continue; const m = (ev.markets || [])[0]; if (!m) continue;
+      try { const oc = JSON.parse(m.outcomes || '[]'), op = JSON.parse(m.outcomePrices || '[]'); const res = {};
+        oc.forEach((o, i) => { const hit = names.find(([n]) => o.includes(n) || n.includes(o)); if (hit) res[hit[1]] = parseFloat(op[i]); });
+        if (res[v.g.home] !== undefined && res[v.g.away] !== undefined) { out[v.id] = res; break; } } catch (e) { /* skip */ } } }
+  return out;
+}
+async function refresh() {
+  document.getElementById('status').textContent = 'Refreshing…';
+  const jobs = [['espn', async () => { state.live.nfl = await fetchESPN('nfl'); state.live.ncaa = await fetchESPN('ncaa'); }],
+                ['kalshi', async () => { state.kalshi.nfl = await fetchKalshi('nfl'); state.kalshi.ncaa = await fetchKalshi('ncaa'); }],
+                ['polymarket', async () => { state.poly.nfl = await fetchPolymarket('nfl'); state.poly.ncaa = await fetchPolymarket('ncaa'); }]];
+  await Promise.all(jobs.map(async ([k, f]) => { try { await f(); state.sources[k] = true; } catch (e) { state.sources[k] = false; } }));
+  state.fetchedAt = new Date(); const ok = Object.values(state.sources).filter(Boolean).length;
+  const dot = document.getElementById('dot'); dot.className = 'dot ' + (ok === 3 ? 'live' : ok ? 'partial' : '');
+  document.getElementById('status').textContent = ok ? `Live · ${state.fetchedAt.toLocaleTimeString()}` : `Snapshot · ${DATA.generated_at.replace(' UTC', 'Z')}`;
+  // re-price legs already on the slip
+  state.legs = state.legs.map(l => { const v = allViews(l.lg).find(x => x.id === l.game); return v ? legFor(v, l.type, l.side) : l; });
+  renderAll(); showSection(state.section);
+}
+
+// ---------- boot ----------
+document.querySelectorAll('[data-league]').forEach(b => b.addEventListener('click', () => { state.league = b.dataset.league; document.querySelectorAll('[data-league]').forEach(x => x.setAttribute('aria-selected', x === b)); renderBoard(); renderBets(); renderRatings(); }));
+document.querySelectorAll('[data-section]').forEach(b => b.addEventListener('click', () => showSection(b.dataset.section)));
+document.getElementById('slipOpen').addEventListener('click', () => { showSection('parlays'); renderParlays(); window.scrollTo({ top: 0 }); });
+try { const h = location.hash.replace('#', ''); if (['board', 'bets', 'parlays', 'ratings', 'method', 'info'].includes(h)) state.section = h; } catch (e) {}
+renderAll(); showSection(state.section);
+if (LIVE_FETCH) { refresh(); setInterval(() => { if (document.visibilityState === 'visible') refresh(); }, 120000); }
+</script>

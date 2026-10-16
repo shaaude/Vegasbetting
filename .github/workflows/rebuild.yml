@@ -1,0 +1,43 @@
+name: Rebuild Edge Board
+# Downloads fresh nflverse / sportsdataverse data, re-runs the NFL and NCAA models and
+# commits the rebuilt site to docs/index.html (served by GitHub Pages).
+# Times are UTC; each run starts ~10 minutes before the Pacific-time slot listed.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '50 0,3 17 10 *'                 # Fri 6:00 pm, 9:00 pm PT (final NFL injury reports)
+    - cron: '50 12,14,16,18,20,22 17 10 *'   # Sat 6, 8, 10 am, 12, 2, 4 pm PT (college game day)
+    - cron: '50 3 18 10 *'                   # Sat 9:00 pm PT (college results, NFL lines)
+    - cron: '50 12,14 18 10 *'               # Sun 6:00, 8:00 am PT (NFL game morning)
+    - cron: '20 16 18 10 *'                  # Sun 9:30 am PT (inactives)
+    - cron: '50 21 19 10 *'                  # Mon 3:00 pm PT (before Monday night)
+permissions:
+  contents: write
+concurrency:
+  group: rebuild
+  cancel-in-progress: false
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pandas numpy scipy pyarrow
+      - name: Rebuild models
+        working-directory: model
+        run: python rebuild.py
+      - name: Build hosted page
+        working-directory: model
+        run: python build_page.py --live --out ../docs/index.html
+      - name: Commit
+        run: |
+          git config user.name "edge-board-bot"
+          git config user.email "edge-board-bot@users.noreply.github.com"
+          git add docs/index.html model/output
+          git diff --cached --quiet && echo "no changes" && exit 0
+          git commit -m "Rebuild Edge Board $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push

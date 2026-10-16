@@ -1,0 +1,16 @@
+{
+  "k_pass": 300,
+  "k_rush": 300,
+  "w_pass": 0.55,
+  "beta": 1.15,
+  "prior_decay": 0.6,
+  "market_ridge": 1.0,
+  "hfa": 2.5,
+  "alpha_market": 0.9,
+  "sigma": 14.8,
+  "play_pts": 5.0,
+  "lean_pts": 3.0,
+  "kelly_fraction": 0.25,
+  "kelly_cap": 0.03,
+  "edge_threshold": 0.03
+}
