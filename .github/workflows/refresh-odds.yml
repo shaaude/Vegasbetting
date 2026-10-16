@@ -1,0 +1,38 @@
+name: Refresh Kalshi prices
+# Kalshi blocks browser requests, so GitHub pulls its prices server-side and re-bakes the page.
+# Light job (no model re-run): every 30 minutes, Oct 16-20 UTC (through Monday night Pacific).
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,37 * 16-20 10 *'
+permissions:
+  contents: write
+concurrency:
+  group: rebuild
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install
+        run: pip install pandas
+      - name: Refresh Kalshi and rebuild page
+        working-directory: model
+        run: |
+          python fetch_kalshi.py
+          python build_bundle.py
+          python build_page.py --live --out ../docs/index.html
+      - name: Commit
+        run: |
+          git config user.name "edge-board-bot"
+          git config user.email "edge-board-bot@users.noreply.github.com"
+          git add docs/index.html model/kalshi_snapshot.json model/output/app_data.json
+          git diff --cached --quiet && echo "no changes" && exit 0
+          git commit -m "Refresh Kalshi prices $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git pull --rebase -q origin main
+          git push

@@ -12,5 +12,6 @@ if "--skip-fetch" not in sys.argv:
     run("bash fetch_data.sh > /dev/null")
 run("python3 run_2026.py")
 run("python3 ncaa_model.py")
+run("python3 fetch_kalshi.py")
 run("python3 build_bundle.py")
 run("python3 build_page.py")

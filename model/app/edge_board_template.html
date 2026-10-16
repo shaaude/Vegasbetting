@@ -482,7 +482,7 @@ function renderInfo() {
   host.innerHTML = `<div class="method">
     <h2>How this board stays current</h2>
     <p>The model was last rebuilt <b>${ptTime(DATA.generated_at)}</b> (Kalshi snapshot ${DATA.kalshi_asof ? ptTime(DATA.kalshi_asof) : 'from the same rebuild'}).</p>
-    ${LIVE_FETCH ? `<p><b>Live odds:</b> this hosted page asks ESPN (lines, totals, moneylines, scores), Kalshi and Polymarket for fresh numbers when it opens and every two minutes while it is open. Edges, tiers, probabilities and parlays reprice against whatever comes back. Feed status: ${['espn', 'kalshi', 'polymarket'].map(k => k + ' ' + (state.sources[k] === true ? 'live' : state.sources[k] === false ? 'not answering' : 'checking')).join(', ')}. A feed that refuses browser requests falls back to the rebuild snapshot, and each card's market chip says which you are seeing.</p>`
+    ${LIVE_FETCH ? `<p><b>Live odds:</b> this hosted page asks ESPN (lines, totals, moneylines, scores), Kalshi and Polymarket for fresh numbers when it opens and every two minutes while it is open. Kalshi refuses requests from browsers, so its prices are also pulled by GitHub's servers every 30 minutes through Monday night and baked into the page (current Kalshi prices as of <b>${DATA.kalshi_asof ? ptTime(DATA.kalshi_asof) : 'the last rebuild'}</b>); reload to pick up the latest. Edges, tiers, probabilities and parlays reprice against whatever comes back. Feed status: ${['espn', 'kalshi', 'polymarket'].map(k => k + ' ' + (state.sources[k] === true ? 'live' : state.sources[k] === false ? 'not answering' : 'checking')).join(', ')}. A feed that refuses browser requests falls back to the rebuild snapshot, and each card's market chip says which you are seeing.</p>`
       : `<p>This copy is a snapshot: Claude artifact pages run in a sandbox that blocks requests to outside sites, so it cannot fetch odds. The live version, which refreshes odds in your browser, is <b>${PAGES_URL}</b>.</p>`}
     <p><b>Model rebuilds</b> run on GitHub Actions in the shaaude/Vegasbetting repository: the workflow downloads fresh play-by-play, injury reports and depth charts, re-runs both models and republishes the site. These runs use GitHub's free Actions minutes, not Claude. You can also start one any time from the repository's Actions tab ("Rebuild Edge Board" → Run workflow).</p>
     <h2>Rebuild schedule</h2>
@@ -492,7 +492,7 @@ function renderInfo() {
     <p>Downloads fresh nflverse and college play-by-play, injury reports, depth charts and schedules; re-runs both models (the college model re-tunes on every run); then rebuilds and commits the page. A run takes about two minutes.</p>
     <p><b>Not automatic:</b> late QB rulings and Sunday inactives that nflverse has not yet posted. Add them to <code>model/injury_overrides.csv</code> or <code>model/starter_overrides.csv</code> in the repository (edit on GitHub, then run the workflow), or ask Claude to do it.</p>
     <h2>Usage and cost</h2>
-    <p>Scheduled rebuilds run on GitHub Actions and use no Claude usage; each takes about two minutes of the free Actions allowance. Claude usage only happens when you ask Claude to change the model or the page.</p>
+    <p>Scheduled rebuilds and the 30-minute Kalshi refresh run on GitHub Actions and use no Claude usage; Actions minutes are free for public repositories. Claude usage only happens when you ask Claude to change the model or the page.</p>
     <h2>Off-schedule refresh</h2>
     <p>Run the workflow from the Actions tab, or ask Claude. The schedule ends Monday; extend it to Week 7 by editing <code>.github/workflows/rebuild.yml</code> or asking Claude.</p></div>`;
 }
@@ -587,7 +587,8 @@ function renderSlip() {
 }
 function renderBanner() {
   const b = document.getElementById('banner'); const s = state.sources;
-  const bits = ['espn', 'kalshi', 'polymarket'].map(k => `${k}: ${s[k] === true ? 'live' : s[k] === false ? 'unreachable' : 'pending'}`).join(' · ');
+  const kAsof = DATA.kalshi_asof ? ptTime(DATA.kalshi_asof) : 'last rebuild';
+  const bits = ['espn', 'kalshi', 'polymarket'].map(k => `${k}: ${s[k] === true ? 'live' : k === 'kalshi' ? 'server refresh ' + kAsof : s[k] === false ? 'unreachable' : 'pending'}`).join(' · ');
   const anyLive = LIVE_FETCH && Object.values(s).some(Boolean);
   if (!LIVE_FETCH || !state.fetchedAt) document.getElementById('status').textContent = 'Rebuilt ' + ptTime(DATA.generated_at);
   b.innerHTML = `<div class="banner">${anyLive ? 'Odds refreshed ' + state.fetchedAt.toLocaleTimeString() + ' (' + bits + ').' : (LIVE_FETCH ? `Lines and prices are the <b>snapshot from the model rebuild ${ptTime(DATA.generated_at)}</b>${state.fetchedAt ? '; the live feeds did not answer (' + bits + ')' : '; checking live feeds…'}.` : `Lines, totals and prediction-market prices are the <b>snapshot built ${ptTime(DATA.generated_at)}</b>. This copy runs in a sandbox that blocks calls to outside sites; the live version is at ${PAGES_URL}`)} <b>Tap any number, chip or label</b> (the ? tiles, dotted text) for a plain-language explanation using that game's figures.</div>`;
