@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-17 19:42 UTC",
+ "as_of": "2026-10-17 22:14 UTC",
  "nfl": {
   "2026_06_WAS_SF": {
    "SF": 0.775,
@@ -35,7 +35,7 @@
   },
   "2026_06_CHI_ATL": {
    "ATL": 0.495,
-   "CHI": 0.515
+   "CHI": 0.505
   },
   "2026_06_BAL_CLE": {
    "CLE": 0.385,
@@ -60,8 +60,8 @@
    "Nebraska": 0.305
   },
   "Penn State@Michigan": {
-   "Michigan": 0.665,
-   "Penn State": 0.335
+   "Michigan": 0.925,
+   "Penn State": 0.075
   },
   "Washington@Purdue": {
    "Purdue": 0.405,
@@ -72,12 +72,12 @@
    "Ohio State": 0.505
   },
   "Auburn@Georgia": {
-   "Georgia": 0.955,
-   "Auburn": 0.045
+   "Georgia": 0.485,
+   "Auburn": 0.515
   },
   "Alabama@Tennessee": {
-   "Tennessee": 0.265,
-   "Alabama": 0.735
+   "Tennessee": 0.665,
+   "Alabama": 0.335
   },
   "Florida State@Miami": {
    "Miami": 0.915,
