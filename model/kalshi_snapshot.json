@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-17 01:15 UTC",
+ "as_of": "2026-10-17 06:07 UTC",
  "nfl": {
   "2026_06_WAS_SF": {
    "SF": 0.775,
@@ -57,11 +57,11 @@
  "ncaa": {
   "Nebraska@Oregon": {
    "Oregon": 0.695,
-   "Nebraska": 0.295
+   "Nebraska": 0.305
   },
   "Penn State@Michigan": {
-   "Michigan": 0.67,
-   "Penn State": 0.33
+   "Michigan": 0.665,
+   "Penn State": 0.335
   },
   "Washington@Purdue": {
    "Purdue": 0.405,
