@@ -67,6 +67,8 @@ main { padding-block: 12px 110px; }
 .chip.NOLINE { background: var(--panel-2); color: var(--muted); }
 .chip.cA { background: var(--good); color: var(--bg); } .chip.cB { background: color-mix(in srgb, var(--good) 30%, transparent); color: var(--good); }
 .chip.cC { background: var(--panel-2); color: var(--fg); } .chip.c– { background: var(--panel-2); color: var(--muted); }
+.pg { margin-top: 8px; } .pg table { font-size: 12px; } .pg td, .pg th { padding: 3px 6px; }
+.pg tr.g1 td { border-top: 1px solid var(--muted); } .pg b.hi { color: var(--good); }
 .chk { display: grid; grid-template-columns: 18px minmax(0, 1fr) auto; gap: 2px 6px; margin-top: 4px; }
 .chk .y { color: var(--good); } .chk .n { color: var(--muted); }
 .tierhead { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 6px; } .tierhead h2 { margin: 0; }
@@ -202,6 +204,54 @@ const state = { league: 'nfl', section: 'board', live: { nfl: {}, ncaa: {} }, ka
 // ---------- math ----------
 function ncdf(z) { const t = 1 / (1 + 0.2316419 * Math.abs(z)); const d = 0.3989423 * Math.exp(-z * z / 2);
   let p = d * t * (0.3193815 + t * (-0.3565638 + t * (1.781478 + t * (-1.821256 + t * 1.330274)))); return z > 0 ? 1 - p : p; }
+function probit(p) { // inverse standard normal (Acklam)
+  if (p <= 0 || p >= 1) return p <= 0 ? -8 : 8;
+  const a = [-39.6968302866538, 220.946098424521, -275.928510446969, 138.357751867269, -30.6647980661472, 2.50662827745924],
+        b = [-54.4760987982241, 161.585836858041, -155.698979859887, 66.8013118877197, -13.2806815528857],
+        c = [-0.00778489400243029, -0.322396458041136, -2.40075827716184, -2.54973253934373, 4.37466414146497, 2.93816398269878],
+        d = [0.00778469570904146, 0.32246712907004, 2.445134137143, 3.75440866190742];
+  const pl = 0.02425; let q, r;
+  if (p < pl) { q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  if (p > 1 - pl) { q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  q = p - 0.5; r = q * q; return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+const SIGMA_TOTAL = { nfl: 12.9, ncaa: 16.0 };
+function probGrid(v) {
+  const g = v.g, s = v.s, H = g.home, A = g.away, rows = [];
+  const avg = xs => { const y = xs.filter(x => x !== null && x !== undefined && !Number.isNaN(x)); return y.length ? y.reduce((a, b) => a + b, 0) / y.length : null; };
+  // crowd: Kalshi and/or Polymarket home win probability
+  const crowdP = avg([v.kalshi ? v.kalshi[H] / ((v.kalshi[H] + v.kalshi[A]) || 1) : null, v.poly ? v.poly[H] : null]);
+  const crowdName = v.kalshi && v.poly ? 'Kalshi/Poly' : v.kalshi ? 'Kalshi' : v.poly ? 'Polymarket' : 'Kalshi';
+  // moneyline
+  let mktML = null; if (v.live.ml && v.live.ml.home && v.live.ml.away) { const ih = 1 / americanToDecimal(v.live.ml.home), ia = 1 / americanToDecimal(v.live.ml.away); mktML = ih / (ih + ia); }
+  else if (v.hasLine) mktML = ncdf(v.mkt / s);
+  const mlM = v.pHomeModel;
+  rows.push({ grp: 'Moneyline', lab: `${H} ML`, m: mlM, k: mktML, c: crowdP });
+  rows.push({ grp: '', lab: `${A} ML`, m: 1 - mlM, k: mktML === null ? null : 1 - mktML, c: crowdP === null ? null : 1 - crowdP });
+  // spread
+  if (v.hasLine) {
+    const mC = ncdf((v.model - v.mkt) / s); const cC = crowdP === null ? null : ncdf((s * probit(crowdP) - v.mkt) / s);
+    rows.push({ grp: 'Spread', lab: `${H} ${fmtSpread(-v.mkt)}`, m: mC, k: 0.5, c: cC });
+    rows.push({ grp: '', lab: `${A} ${fmtSpread(v.mkt)}`, m: 1 - mC, k: 0.5, c: cC === null ? null : 1 - cC });
+  }
+  // total
+  if (v.total && g.model_total) {
+    const oM = ncdf((g.model_total - v.total) / SIGMA_TOTAL[v.lg]);
+    rows.push({ grp: 'Total', lab: `Over ${v.total}`, m: oM, k: 0.5, c: null });
+    rows.push({ grp: '', lab: `Under ${v.total}`, m: 1 - oM, k: 0.5, c: null });
+  }
+  rows.forEach(r => { r.a = avg([r.m, r.k, r.c]); });
+  return { rows, crowdName };
+}
+function gridHTML(v) {
+  if (v.final) return '';
+  const { rows, crowdName } = probGrid(v); const p = x => x === null || x === undefined ? '<span class="note">—</span>' : (100 * x).toFixed(0) + '%';
+  const best = r => r.a !== null && r.a >= 0.524 && r.grp !== 'Moneyline' ? ' class="hi"' : '';
+  return `<div class="tablewrap pg"><table data-x="grid" data-lg="${v.lg}" data-id="${v.id}" role="button" tabindex="0">
+    <tr><th>Bet</th><th class="r">Model</th><th class="r">Market</th><th class="r">${crowdName}</th><th class="r">Avg</th></tr>
+    ${rows.map(r => `<tr${r.grp ? ' class="g1"' : ''}><td>${r.lab}</td><td class="r">${p(r.m)}</td><td class="r">${p(r.k)}</td><td class="r">${p(r.c)}</td><td class="r"><b${best(r)}>${p(r.a)}</b></td></tr>`).join('')}
+  </table></div>${v.g.model_total ? `<div class="note">Model total ${v.g.model_total.toFixed(1)}${v.total ? ' vs line ' + v.total : ''}. Tap the table for how each column is computed.</div>` : ''}`;
+}
 function americanToDecimal(a) { a = Number(a); if (!a) return null; return a > 0 ? 1 + a / 100 : 1 + 100 / Math.abs(a); }
 function decimalToAmerican(d) { if (!d || d <= 1) return '—'; const a = d >= 2 ? (d - 1) * 100 : -100 / (d - 1); return (a > 0 ? '+' : '') + Math.round(a); }
 function fmtSpread(v) { if (v === null || v === undefined || Number.isNaN(v)) return '—'; const s = Number(v); return (s > 0 ? '+' : '') + s.toFixed(1).replace('.0', ''); }
@@ -318,6 +368,7 @@ function cardHTML(v) {
       <div class="num" data-x="edge" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0"><div class="l">Edge</div><div class="v ${cls(v.edge)}">${edgeTxt}</div><div class="s">cover ${pct1(side === 'home' ? v.pHomeCover : (v.pHomeCover === null ? null : 1 - v.pHomeCover))} on ${pickTeam}</div></div>
     </div>
     <div class="probs"><span data-x="pmodel" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">Win ${g.home}: model <b>${pct(v.pHomeModel)}</b></span><span data-x="pblend" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">blend <b>${pct(v.pHomeBlend)}</b></span>${v.pHomeMkt !== null ? `<span data-x="pmarket" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">market <b>${pct(v.pHomeMkt)}</b></span>` : ''}${kal ? `<span data-x="kalshi" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">${kal}</span>` : ''}${pol ? `<span data-x="poly" data-lg="${lg}" data-id="${v.id}" role="button" tabindex="0">${pol}</span>` : ''}</div>
+    ${gridHTML(v)}
     <div class="explain" hidden></div>
     <div class="actions">
       <div class="seg" role="group" aria-label="side"><button aria-pressed="${side === 'away'}" data-side="away" data-id="${v.id}">${g.away}</button><button aria-pressed="${side === 'home'}" data-side="home" data-id="${v.id}">${g.home}</button></div>
@@ -683,6 +734,15 @@ function explainText(key, lg, id, extra) {
       const pickTeam = fav(v.edge); const tierTxt = v.tier === 'PLAY' ? 'a PLAY (4+ points NFL, 5+ college)' : v.tier === 'LEAN' ? 'a LEAN (2.5+ points NFL, 3+ college)' : 'below the lean threshold';
       return t(`Edge ${sign(v.edge)} ${pickTeam}`, `<p><b>Edge = model line minus market line.</b> The model says ${fav(v.model)} by ${abs(v.model)}; the market says ${fav(v.mkt)} by ${abs(v.mkt)}. The gap is ${abs(v.edge)} points in ${pickTeam}'s favor, so the model thinks ${pickTeam} is getting ${abs(v.edge)} points more than it should. That surplus is the value, and it makes this ${tierTxt}.</p>` +
         `<p>${bucketLine(lg)} ${lg === 'nfl' ? 'Edges are more trustworthy when they come from a QB or injury change the market has not fully priced.' : 'In college the model\'s large disagreements have lost, so an edge here is a flag to look closer, not a reason to bet.'}</p>`);
+    }
+    case 'grid': {
+      if (!v) return '';
+      const { crowdName } = probGrid(v);
+      return t('Chance of winning each bet', `<p>Every row is the estimated chance that bet wins, from three sources and their average.</p>
+        <p><b>Model</b>: from the model's own line (${fav(v.model)} by ${abs(v.model)}) on a bell curve with a typical miss of ${SIGMA[lg]} points; totals use the model's projected total${g.model_total ? ' (' + g.model_total.toFixed(1) + ')' : ''} with a typical miss of ${SIGMA_TOTAL[lg]} points.</p>
+        <p><b>Market</b>: what the betting prices imply with the vig removed. The book sets spreads and totals so each side is close to 50%, so those rows read 50% by design; the moneyline row comes from live moneyline prices when available, otherwise from the spread.</p>
+        <p><b>${crowdName}</b>: the prediction-market win price. For the spread it is converted to an implied margin and compared with the line. No totals markets are tracked, so that cell is blank.</p>
+        <p><b>Avg</b>: the simple mean of the available columns. A spread or total average above 52.4% (highlighted) is the breakeven at −110. Treat the totals model with caution: over 224 games in 2025 its over/under picks went 109-115, worse than simply trusting the posted total.</p>`);
     }
     case 'conv': {
       if (!v || !v.conv) return '';

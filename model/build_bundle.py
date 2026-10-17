@@ -30,6 +30,33 @@ scorecard = open(os.path.join(OUT, "scorecard_weeks4_5.md")).read()
 kalshi = json.load(open(os.path.join(HERE, "kalshi_snapshot.json")))
 kalshi_asof = kalshi.pop("as_of", "")
 
+# ---- model totals: each team's expected points from opponent-adjusted EPA (offense vs the other defense) ----
+games_all = pd.read_csv(os.path.join("/tmp/nfl", "games.csv"))
+gp = games_all[(games_all.season == 2026) & (games_all.week < 6) & games_all.home_score.notna()]
+L_nfl = float(pd.concat([gp.home_score, gp.away_score]).mean())
+prr = pr.set_index("team")
+def nfl_pts(t, o):
+    b, wp = nfl_p["beta"], nfl_p["w_pass"]
+    return L_nfl + b * 54.0 * (wp * (prr.at[t, "off_pass"] + prr.at[o, "def_pass"]) + (1 - wp) * (prr.at[t, "off_rush"] + prr.at[o, "def_rush"]))
+w6["model_total"] = [nfl_pts(r.home, r.away) + nfl_pts(r.away, r.home) + (r.qb_adj_home or 0) + (r.qb_adj_away or 0) for r in w6.itertuples()]
+w6["model_total"] = w6.model_total.round(1)
+gl = games_all[(games_all.season == 2026) & (games_all.week == 6)].set_index(["away_team", "home_team"]).total_line
+w6["total"] = [gl.get((r.away, r.home)) for r in w6.itertuples()]
+sched = pd.read_parquet(os.path.join("/tmp/cfb", "schedules_2026.parquet"))
+fb = sched[(sched.home_division == "fbs") & (sched.away_division == "fbs") & sched.home_points.notna() & (sched.week < 7)]
+L_cfb = float(pd.concat([fb.home_points, fb.away_points]).mean())
+npi = npr.set_index("team")
+def cfb_pts(t, o):
+    b, wp = ncaa_p["beta"], ncaa_p["w_pass"]
+    if t not in npi.index or o not in npi.index: return None
+    return L_cfb + b * 65.0 * (wp * (npi.at[t, "off_pass"] + npi.at[o, "def_pass"]) + (1 - wp) * (npi.at[t, "off_rush"] + npi.at[o, "def_rush"]))
+mt = []
+for r in ncaa.itertuples():
+    a_, b_ = cfb_pts(r.home, r.away), cfb_pts(r.away, r.home)
+    mt.append(round(a_ + b_, 1) if a_ is not None and b_ is not None else None)
+ncaa["model_total"] = mt
+print("league avg points per team: NFL", round(L_nfl, 1), "CFB", round(L_cfb, 1))
+
 nb_w, nb_l = int((nbt.pick_cover == 1).sum()), int((nbt.pick_cover == -1).sum())
 tiers = nbt[nbt.tier != "PASS"]
 bundle = {

@@ -62,7 +62,7 @@ def load_injuries(season: int) -> pd.DataFrame:
     i = pd.read_csv(os.path.join(DATA_DIR, f"injuries_{season}.csv"))
     i = i[i.game_type == "REG"].copy()
     path = os.path.join(HERE, "injury_overrides.csv")
-    if os.path.exists(path) and season == i.season.max():
+    if os.path.exists(path) and season == int(pd.read_csv(os.path.join(DATA_DIR, "games.csv"), usecols=["season"]).season.max()):
         ov = pd.read_csv(path)
         wk = i.week.max()
         for r in ov.itertuples():
