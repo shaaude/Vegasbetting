@@ -1,10 +1,10 @@
 {
-  "k_pass": 300,
-  "k_rush": 300,
+  "k_pass": 1200,
+  "k_rush": 1200,
   "w_pass": 0.55,
   "beta": 1.15,
   "prior_decay": 0.6,
-  "market_ridge": 1.0,
+  "market_ridge": 0.5,
   "hfa": 2.5,
   "alpha_market": 0.9,
   "sigma": 14.8,

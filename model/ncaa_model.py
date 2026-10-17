@@ -166,6 +166,12 @@ def assemble(df, post, p: CParams):
     d["rating_away"] = d.away_b.map(post.rating)
     d["hfa"] = np.where(d.neutral == 1, 0.0, p.hfa)
     d["model_spread"] = d.hfa + d.rating_home - d.rating_away
+    return derive(d, p)
+
+
+def derive(d, p: CParams):
+    """Probabilities, edge and tier from model_spread and market_spread."""
+    d = d.copy()
     d["blend_spread"] = np.where(d.market_spread.isna(), d.model_spread, p.alpha_market * d.market_spread + (1 - p.alpha_market) * d.model_spread)
     s = p.sigma
     d["p_home_win_model"] = norm.cdf(d.model_spread / s)
@@ -258,12 +264,44 @@ def main():
     out["pass_pts_away"] = out.away_b.map(post.pass_pts); out["rush_pts_away"] = out.away_b.map(post.rush_pts)
     out["market_prior_home"] = out.home_b.map(post.market_prior); out["market_prior_away"] = out.away_b.map(post.market_prior)
     out["kickoff_utc"] = out.start_date
-    out["result"] = out.home_points - out.away_points
+    out["result"] = (out.home_points - out.away_points).fillna(out.final_home - out.final_away)
     cols = ["kickoff_utc", "away", "home", "ap_rank_away", "ap_rank_home", "away_conference", "home_conference", "neutral",
             "rating_away", "rating_home", "pass_pts_away", "rush_pts_away", "pass_pts_home", "rush_pts_home",
             "market_prior_away", "market_prior_home", "elo_away", "elo_home", "hfa", "model_spread", "blend_spread",
             "market_spread", "total", "source", "note", "edge_pts", "p_home_win_model", "p_home_win_blend", "pick",
-            "pick_cover_prob", "edge_prob", "kelly_stake", "tier", "result"]
+            "pick_cover_prob", "edge_prob", "kelly_stake", "tier", "result", "open_spread", "started"]
+    # Freeze predictions at kickoff: games already started keep the line the model gave before kickoff,
+    # so later data (including that game's own plays) never rewrites a graded prediction.
+    pre_path = os.path.join(OUT, "ncaa_pregame.csv")
+    frozen = ["rating_away", "rating_home", "pass_pts_away", "rush_pts_away", "pass_pts_home", "rush_pts_home",
+              "market_prior_away", "market_prior_home", "model_spread"]
+    now = pd.Timestamp.now(tz="UTC")
+    out["started"] = pd.to_datetime(out.kickoff_utc, utc=True) <= now
+    if os.path.exists(pre_path):
+        pre = pd.read_csv(pre_path).set_index(["away", "home"])
+        for i, r in out[out.started].iterrows():
+            k = (r.away, r.home)
+            if k in pre.index:
+                for c in frozen:
+                    if c in pre.columns:
+                        out.at[i, c] = pre.at[k, c]
+        out = assemble(out.drop(columns=["blend_spread"], errors="ignore"), post, best_p).assign(
+            **{c: out[c] for c in ["kelly_stake", "ap_rank_home", "ap_rank_away", "elo_home", "elo_away", "pass_pts_home", "rush_pts_home",
+                                   "pass_pts_away", "rush_pts_away", "market_prior_home", "market_prior_away", "kickoff_utc", "result", "started",
+                                   "rating_home", "rating_away"]})
+        out["model_spread"] = out["model_spread"]  # assemble recomputes from ratings; restore frozen spread below
+    if os.path.exists(pre_path):
+        for i, r in out[out.started].iterrows():
+            k = (r.away, r.home)
+            if k in pre.index:
+                out.at[i, "model_spread"] = pre.at[k, "model_spread"]
+        out = derive(out, best_p)
+        keep = pre.reset_index()
+        keep = keep[keep.set_index(["away", "home"]).index.isin(out[out.started].set_index(["away", "home"]).index)]
+        fresh = out[~out.started]
+        pd.concat([keep, fresh[[c for c in keep.columns if c in fresh.columns]]], ignore_index=True).to_csv(pre_path, index=False)
+    else:
+        out.to_csv(pre_path, index=False)
     out = out.sort_values("kickoff_utc")
     out[cols].round(3).to_csv(os.path.join(OUT, "ncaa_saturday_board.csv"), index=False)
     pd.set_option("display.width", 250)

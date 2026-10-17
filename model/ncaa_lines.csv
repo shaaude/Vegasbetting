@@ -1,21 +1,21 @@
-away,home,market_spread,total,source,note
-Ohio State,Indiana,-4.0,50.5,DraftKings opener 2026-10-11 (SI),Covers 10/16 shows OSU -2.5
-Florida,Texas,10.0,52.5,DraftKings opener 2026-10-11 (SI),Covers 10/16 shows TEX -11.5
-Mississippi State,LSU,10.5,59.5,DraftKings opener 2026-10-11 (SI),
-Virginia,SMU,8.5,54.5,DraftKings opener 2026-10-11 (SI),Covers 10/16 shows SMU -9.5
-Northwestern,Michigan State,-9.5,47.5,DraftKings opener 2026-10-11 (SI),
-Rutgers,Maryland,5.5,56.0,Covers 2026-10-16,
-Penn State,Michigan,6.5,42.0,Covers 2026-10-16,
-Auburn,Georgia,18.5,50.5,DraftKings opener 2026-10-11 (SI),Covers 10/16 shows UGA -19.5
-Alabama,Tennessee,-7.0,55.5,DraftKings opener 2026-10-11 (SI),Covers 10/16 shows ALA -7.5
-Missouri,Ole Miss,6.0,60.5,DraftKings opener 2026-10-11 (SI),Covers 10/16 shows MISS -5.5
-Arizona State,Texas Tech,13.5,48.5,DraftKings opener 2026-10-11 (SI),Covers 10/16 shows TTU -15.5
-Florida State,Miami,21.0,56.5,DraftKings opener 2026-10-11 (SI),scoresandodds 10/16 shows MIA -21
-Wisconsin,UCLA,3.0,46.5,DraftKings opener 2026-10-11 (SI),
-Oklahoma State,Houston,4.5,59.5,DraftKings opener 2026-10-11 (SI),
-Notre Dame,BYU,-11.5,47.5,DraftKings opener 2026-10-11 (SI),
-Kentucky,Oklahoma,6.5,43.5,DraftKings opener 2026-10-11 (SI),
-Utah,Colorado,-16.5,49.5,DraftKings opener 2026-10-11 (SI),
-Wake Forest,California,-9.5,54.5,DraftKings opener 2026-10-11 (SI),
-Nebraska,Oregon,7.5,,Kalshi-implied 2026-10-16 (Oregon 70%),DraftKings line not captured; live fetch will replace
-Washington,Purdue,,,,Friday night game - line not captured
+away,home,market_spread,total,source,note,open_spread,final_home,final_away
+Washington,Purdue,,,,No line captured,,26,38
+Ohio State,Indiana,-2.5,50.5,PrizePicks/Covers 2026-10-17,Opened OSU -4 (DK),-4.0,15,19
+Florida,Texas,11.5,52.5,PrizePicks/Covers 2026-10-17,Opened TEX -10 (DK),10.0,24,27
+Mississippi State,LSU,16.5,59.5,PrizePicks/Covers 2026-10-17,Opened LSU -10.5 (DK),10.5,31,0
+Virginia,SMU,9.5,54.5,PrizePicks/Covers 2026-10-17,Opened SMU -8.5 (DK),8.5,23,13
+Northwestern,Michigan State,-7.5,47.5,PrizePicks/Covers 2026-10-17,Opened NW -9.5 (DK),-9.5,21,24
+Rutgers,Maryland,5.5,56.0,Covers 2026-10-16,,5.5,30,37
+Penn State,Michigan,6.5,42.0,PrizePicks/Covers 2026-10-17,,6.5,21,18
+Auburn,Georgia,18.5,50.5,PrizePicks/Covers 2026-10-17,,18.5,24,27
+Alabama,Tennessee,-7.5,55.5,PrizePicks/Covers 2026-10-17,Opened ALA -7 (DK),-7.0,26,10
+Missouri,Ole Miss,5.5,60.5,PrizePicks/Covers 2026-10-17,Opened MISS -6 (DK),6.0,31,3
+Arizona State,Texas Tech,16.5,48.5,PrizePicks 2026-10-17,Opened TTU -13.5 (DK),13.5,53,25
+Florida State,Miami,20.5,56.5,PrizePicks 2026-10-17,Opened MIA -21 (DK),21.0,,
+Wisconsin,UCLA,2.5,46.5,PrizePicks 2026-10-17,Opened UCLA -3 (DK),3.0,,
+Oklahoma State,Houston,4.5,59.5,PrizePicks 2026-10-17,,4.5,,
+Notre Dame,BYU,-10.5,47.5,PrizePicks 2026-10-17,Opened ND -11.5 (DK),-11.5,,
+Kentucky,Oklahoma,6.5,43.5,PrizePicks 2026-10-17,,6.5,,
+Utah,Colorado,-14.5,49.5,PrizePicks 2026-10-17,Opened UTAH -16.5 (DK),-16.5,,
+Wake Forest,California,-9.5,54.5,PrizePicks 2026-10-17,,-9.5,,
+Nebraska,Oregon,6.5,,PrizePicks 2026-10-17,Kalshi had Oregon 70% Friday,,,
