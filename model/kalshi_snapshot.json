@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-17 17:31 UTC",
+ "as_of": "2026-10-17 19:42 UTC",
  "nfl": {
   "2026_06_WAS_SF": {
    "SF": 0.775,
@@ -7,7 +7,7 @@
   },
   "2026_06_DAL_GB": {
    "GB": 0.515,
-   "DAL": 0.485
+   "DAL": 0.495
   },
   "2026_06_LAC_KC": {
    "KC": 0.785,
@@ -38,8 +38,8 @@
    "CHI": 0.515
   },
   "2026_06_BAL_CLE": {
-   "CLE": 0.395,
-   "BAL": 0.605
+   "CLE": 0.385,
+   "BAL": 0.615
   },
   "2026_06_TEN_IND": {
    "IND": 0.745,
@@ -68,20 +68,20 @@
    "Washington": 0.595
   },
   "Ohio State@Indiana": {
-   "Indiana": 0.555,
-   "Ohio State": 0.445
+   "Indiana": 0.495,
+   "Ohio State": 0.505
   },
   "Auburn@Georgia": {
-   "Georgia": 0.905,
-   "Auburn": 0.095
+   "Georgia": 0.955,
+   "Auburn": 0.045
   },
   "Alabama@Tennessee": {
-   "Tennessee": 0.255,
-   "Alabama": 0.745
+   "Tennessee": 0.265,
+   "Alabama": 0.735
   },
   "Florida State@Miami": {
-   "Miami": 0.925,
-   "Florida State": 0.075
+   "Miami": 0.915,
+   "Florida State": 0.085
   },
   "Notre Dame@BYU": {
    "BYU": 0.215,
