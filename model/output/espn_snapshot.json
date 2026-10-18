@@ -1,54 +1,54 @@
 {
- "as_of": "2026-10-18 18:41 UTC",
+ "as_of": "2026-10-18 19:24 UTC",
  "nfl": {
   "TEN@IND": {
-   "state": "13:30 - 3rd",
+   "state": "13:00 - 4th",
    "phase": "in",
    "completed": false,
    "home_score": 13,
-   "away_score": 3
+   "away_score": 13
   },
   "CAR@PHI": {
-   "state": "Halftime",
+   "state": "6:30 - 3rd",
    "phase": "in",
    "completed": false,
    "home_score": 7,
-   "away_score": 10
+   "away_score": 13
   },
   "PIT@TB": {
-   "state": "Halftime",
+   "state": "15:00 - 4th",
    "phase": "in",
    "completed": false,
-   "home_score": 13,
+   "home_score": 16,
    "away_score": 3
   },
   "BAL@CLE": {
-   "state": "12:00 - 3rd",
+   "state": "9:15 - 4th",
    "phase": "in",
    "completed": false,
-   "home_score": 0,
+   "home_score": 3,
    "away_score": 10
   },
   "NO@NYG": {
-   "state": "Halftime",
+   "state": "1:12 - 3rd",
    "phase": "in",
    "completed": false,
    "home_score": 10,
-   "away_score": 10
+   "away_score": 27
   },
   "CHI@ATL": {
-   "state": "Halftime",
+   "state": "1:48 - 3rd",
    "phase": "in",
    "completed": false,
    "home_score": 7,
-   "away_score": 21
+   "away_score": 28
   },
   "NYJ@NE": {
-   "state": "Halftime",
+   "state": "14:10 - 4th",
    "phase": "in",
    "completed": false,
-   "home_score": 17,
-   "away_score": 3
+   "home_score": 23,
+   "away_score": 13
   },
   "HOU@JAX": {
    "state": "Final",
@@ -63,7 +63,7 @@
    "completed": false,
    "spread": 12.5,
    "total": 51.5,
-   "odds_asof": "2026-10-18 18:41 UTC"
+   "odds_asof": "2026-10-18 19:24 UTC"
   },
   "LAC@KC": {
    "state": "10/18 - 4:25 PM EDT",
@@ -71,7 +71,7 @@
    "completed": false,
    "spread": 7.5,
    "total": 41.5,
-   "odds_asof": "2026-10-18 18:41 UTC"
+   "odds_asof": "2026-10-18 19:24 UTC"
   },
   "BUF@LV": {
    "state": "10/18 - 4:25 PM EDT",
@@ -79,7 +79,7 @@
    "completed": false,
    "spread": -5.5,
    "total": 53.5,
-   "odds_asof": "2026-10-18 18:41 UTC"
+   "odds_asof": "2026-10-18 19:24 UTC"
   },
   "DAL@GB": {
    "state": "10/18 - 8:20 PM EDT",
@@ -87,7 +87,7 @@
    "completed": false,
    "spread": 1.5,
    "total": 53.5,
-   "odds_asof": "2026-10-18 18:41 UTC"
+   "odds_asof": "2026-10-18 19:24 UTC"
   },
   "SEA@DEN": {
    "state": "Final/OT",
@@ -102,7 +102,7 @@
    "completed": false,
    "spread": 7.5,
    "total": 52.5,
-   "odds_asof": "2026-10-18 18:41 UTC"
+   "odds_asof": "2026-10-18 19:24 UTC"
   }
  },
  "ncaa": {
