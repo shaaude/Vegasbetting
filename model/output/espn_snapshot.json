@@ -1,54 +1,54 @@
 {
- "as_of": "2026-10-18 19:24 UTC",
+ "as_of": "2026-10-18 21:49 UTC",
  "nfl": {
   "TEN@IND": {
-   "state": "13:00 - 4th",
-   "phase": "in",
-   "completed": false,
-   "home_score": 13,
-   "away_score": 13
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 20,
+   "away_score": 26
   },
   "CAR@PHI": {
-   "state": "6:30 - 3rd",
-   "phase": "in",
-   "completed": false,
-   "home_score": 7,
-   "away_score": 13
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 14,
+   "away_score": 25
   },
   "PIT@TB": {
-   "state": "15:00 - 4th",
-   "phase": "in",
-   "completed": false,
-   "home_score": 16,
-   "away_score": 3
+   "state": "Final/OT",
+   "phase": "post",
+   "completed": true,
+   "home_score": 19,
+   "away_score": 26
   },
   "BAL@CLE": {
-   "state": "9:15 - 4th",
-   "phase": "in",
-   "completed": false,
-   "home_score": 3,
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 13,
    "away_score": 10
   },
   "NO@NYG": {
-   "state": "1:12 - 3rd",
-   "phase": "in",
-   "completed": false,
-   "home_score": 10,
-   "away_score": 27
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 27,
+   "away_score": 34
   },
   "CHI@ATL": {
-   "state": "1:48 - 3rd",
-   "phase": "in",
-   "completed": false,
-   "home_score": 7,
-   "away_score": 28
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 23,
+   "away_score": 31
   },
   "NYJ@NE": {
-   "state": "14:10 - 4th",
-   "phase": "in",
-   "completed": false,
-   "home_score": 23,
-   "away_score": 13
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 26,
+   "away_score": 19
   },
   "HOU@JAX": {
    "state": "Final",
@@ -58,36 +58,42 @@
    "away_score": 34
   },
   "ARI@LA": {
-   "state": "10/18 - 4:05 PM EDT",
-   "phase": "pre",
+   "state": "6:25 - 3rd",
+   "phase": "in",
    "completed": false,
    "spread": 12.5,
    "total": 51.5,
-   "odds_asof": "2026-10-18 19:24 UTC"
+   "odds_asof": "2026-10-18 19:24 UTC",
+   "home_score": 9,
+   "away_score": 12
   },
   "LAC@KC": {
-   "state": "10/18 - 4:25 PM EDT",
-   "phase": "pre",
+   "state": "Halftime",
+   "phase": "in",
    "completed": false,
    "spread": 7.5,
    "total": 41.5,
-   "odds_asof": "2026-10-18 19:24 UTC"
+   "odds_asof": "2026-10-18 19:24 UTC",
+   "home_score": 19,
+   "away_score": 3
   },
   "BUF@LV": {
-   "state": "10/18 - 4:25 PM EDT",
-   "phase": "pre",
+   "state": "Halftime",
+   "phase": "in",
    "completed": false,
    "spread": -5.5,
    "total": 53.5,
-   "odds_asof": "2026-10-18 19:24 UTC"
+   "odds_asof": "2026-10-18 19:24 UTC",
+   "home_score": 13,
+   "away_score": 13
   },
   "DAL@GB": {
    "state": "10/18 - 8:20 PM EDT",
    "phase": "pre",
    "completed": false,
-   "spread": 1.5,
+   "spread": -1.5,
    "total": 53.5,
-   "odds_asof": "2026-10-18 19:24 UTC"
+   "odds_asof": "2026-10-18 21:49 UTC"
   },
   "SEA@DEN": {
    "state": "Final/OT",
@@ -102,7 +108,7 @@
    "completed": false,
    "spread": 7.5,
    "total": 52.5,
-   "odds_asof": "2026-10-18 19:24 UTC"
+   "odds_asof": "2026-10-18 21:49 UTC"
   }
  },
  "ncaa": {
