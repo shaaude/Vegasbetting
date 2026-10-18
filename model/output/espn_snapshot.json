@@ -1,53 +1,53 @@
 {
- "as_of": "2026-10-18 17:50 UTC",
+ "as_of": "2026-10-18 18:41 UTC",
  "nfl": {
   "TEN@IND": {
-   "state": "Q2 11:07",
+   "state": "13:30 - 3rd",
+   "phase": "in",
+   "completed": false,
+   "home_score": 13,
+   "away_score": 3
+  },
+  "CAR@PHI": {
+   "state": "Halftime",
    "phase": "in",
    "completed": false,
    "home_score": 7,
-   "away_score": 0
-  },
-  "CAR@PHI": {
-   "state": "End Q1",
-   "phase": "in",
-   "completed": false,
-   "home_score": 0,
-   "away_score": 3
+   "away_score": 10
   },
   "PIT@TB": {
-   "state": "Q2 13:52",
+   "state": "Halftime",
    "phase": "in",
    "completed": false,
-   "home_score": 10,
-   "away_score": 0
+   "home_score": 13,
+   "away_score": 3
   },
   "BAL@CLE": {
-   "state": "Q2 11:37",
+   "state": "12:00 - 3rd",
    "phase": "in",
    "completed": false,
    "home_score": 0,
    "away_score": 10
   },
   "NO@NYG": {
-   "state": "Q2 11:21",
+   "state": "Halftime",
    "phase": "in",
    "completed": false,
-   "home_score": 7,
-   "away_score": 0
+   "home_score": 10,
+   "away_score": 10
   },
   "CHI@ATL": {
-   "state": "Q2 10:41",
-   "phase": "in",
-   "completed": false,
-   "home_score": 0,
-   "away_score": 14
-  },
-  "NYJ@NE": {
-   "state": "Q2 12:30",
+   "state": "Halftime",
    "phase": "in",
    "completed": false,
    "home_score": 7,
+   "away_score": 21
+  },
+  "NYJ@NE": {
+   "state": "Halftime",
+   "phase": "in",
+   "completed": false,
+   "home_score": 17,
    "away_score": 3
   },
   "HOU@JAX": {
@@ -56,7 +56,440 @@
    "completed": true,
    "home_score": 31,
    "away_score": 34
+  },
+  "ARI@LA": {
+   "state": "10/18 - 4:05 PM EDT",
+   "phase": "pre",
+   "completed": false,
+   "spread": 12.5,
+   "total": 51.5,
+   "odds_asof": "2026-10-18 18:41 UTC"
+  },
+  "LAC@KC": {
+   "state": "10/18 - 4:25 PM EDT",
+   "phase": "pre",
+   "completed": false,
+   "spread": 7.5,
+   "total": 41.5,
+   "odds_asof": "2026-10-18 18:41 UTC"
+  },
+  "BUF@LV": {
+   "state": "10/18 - 4:25 PM EDT",
+   "phase": "pre",
+   "completed": false,
+   "spread": -5.5,
+   "total": 53.5,
+   "odds_asof": "2026-10-18 18:41 UTC"
+  },
+  "DAL@GB": {
+   "state": "10/18 - 8:20 PM EDT",
+   "phase": "pre",
+   "completed": false,
+   "spread": 1.5,
+   "total": 53.5,
+   "odds_asof": "2026-10-18 18:41 UTC"
+  },
+  "SEA@DEN": {
+   "state": "Final/OT",
+   "phase": "post",
+   "completed": true,
+   "home_score": 17,
+   "away_score": 14
+  },
+  "WAS@SF": {
+   "state": "10/19 - 8:15 PM EDT",
+   "phase": "pre",
+   "completed": false,
+   "spread": 7.5,
+   "total": 52.5,
+   "odds_asof": "2026-10-18 18:41 UTC"
   }
  },
- "ncaa": {}
+ "ncaa": {
+  "Memphis@Tulane": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 31,
+   "away_score": 17
+  },
+  "Washington@Purdue": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 26,
+   "away_score": 38
+  },
+  "App State@Coastal Carolina": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 32,
+   "away_score": 35
+  },
+  "Auburn@Georgia": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 24,
+   "away_score": 27
+  },
+  "Notre Dame@BYU": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 28,
+   "away_score": 24
+  },
+  "Florida State@Miami": {
+   "state": "Final/2OT",
+   "phase": "post",
+   "completed": true,
+   "home_score": 43,
+   "away_score": 35
+  },
+  "Ohio State@Indiana": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 15,
+   "away_score": 19
+  },
+  "Alabama@Tennessee": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 26,
+   "away_score": 10
+  },
+  "Florida@Texas": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 24,
+   "away_score": 27
+  },
+  "Missouri@Ole Miss": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 31,
+   "away_score": 3
+  },
+  "Arizona State@Texas Tech": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 53,
+   "away_score": 25
+  },
+  "Utah@Colorado": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 24,
+   "away_score": 27
+  },
+  "Wisconsin@UCLA": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 17,
+   "away_score": 7
+  },
+  "Kentucky@Oklahoma": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 13,
+   "away_score": 21
+  },
+  "Mississippi State@LSU": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 31,
+   "away_score": 0
+  },
+  "Oklahoma State@Houston": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 35,
+   "away_score": 32
+  },
+  "Wake Forest@California": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 7,
+   "away_score": 41
+  },
+  "Virginia@SMU": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 23,
+   "away_score": 13
+  },
+  "Northwestern@Michigan State": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 21,
+   "away_score": 24
+  },
+  "Cincinnati@West Virginia": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 45,
+   "away_score": 42
+  },
+  "Kansas@Kansas State": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 35,
+   "away_score": 24
+  },
+  "Charleston Southern@Clemson": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 37,
+   "away_score": 0
+  },
+  "Pittsburgh@Boston College": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 27,
+   "away_score": 21
+  },
+  "Florida Atlantic@Army": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 56,
+   "away_score": 24
+  },
+  "Ball State@Bowling Green": {
+   "state": "Final/OT",
+   "phase": "post",
+   "completed": true,
+   "home_score": 31,
+   "away_score": 32
+  },
+  "Georgia State@James Madison": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 49,
+   "away_score": 22
+  },
+  "Rutgers@Maryland": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 30,
+   "away_score": 37
+  },
+  "The Citadel@Texas A&M": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 41,
+   "away_score": 0
+  },
+  "Charlotte@Temple": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 31,
+   "away_score": 38
+  },
+  "Massachusetts@Buffalo": {
+   "state": "Final/OT",
+   "phase": "post",
+   "completed": true,
+   "home_score": 25,
+   "away_score": 18
+  },
+  "Western Michigan@Central Michigan": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 14,
+   "away_score": 21
+  },
+  "Georgia Tech@Virginia Tech": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 34,
+   "away_score": 24
+  },
+  "North Carolina@Duke": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 20,
+   "away_score": 24
+  },
+  "Penn State@Michigan": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 21,
+   "away_score": 18
+  },
+  "Northern Illinois@Wyoming": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 41,
+   "away_score": 23
+  },
+  "UNLV@Air Force": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 41,
+   "away_score": 31
+  },
+  "Toledo@Eastern Michigan": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 14,
+   "away_score": 34
+  },
+  "Akron@Miami (OH)": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 34,
+   "away_score": 14
+  },
+  "Tulsa@Rice": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 17,
+   "away_score": 38
+  },
+  "Troy@Louisiana": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 33,
+   "away_score": 6
+  },
+  "Washington State@Oregon State": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 48,
+   "away_score": 30
+  },
+  "Arkansas@Vanderbilt": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 21,
+   "away_score": 31
+  },
+  "TCU@Baylor": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 6,
+   "away_score": 17
+  },
+  "Kent State@South Florida": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 29,
+   "away_score": 2
+  },
+  "Nevada@North Dakota State": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 31,
+   "away_score": 17
+  },
+  "Arkansas State@Southern Miss": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 13,
+   "away_score": 23
+  },
+  "Elon@Stanford": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 34,
+   "away_score": 7
+  },
+  "Louisville@Syracuse": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 26,
+   "away_score": 34
+  },
+  "Navy@UTSA": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 38,
+   "away_score": 34
+  },
+  "Louisiana Tech@UL Monroe": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 0,
+   "away_score": 24
+  },
+  "San Jos\u00e9 State@UTEP": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 11,
+   "away_score": 24
+  },
+  "Ohio@Sacramento State": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 7,
+   "away_score": 48
+  },
+  "Fresno State@San Diego State": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 26,
+   "away_score": 23
+  },
+  "New Mexico@Hawai'i": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 10,
+   "away_score": 21
+  },
+  "Nebraska@Oregon": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 17,
+   "away_score": 14
+  }
+ }
 }
