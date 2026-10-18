@@ -223,7 +223,8 @@ function probGrid(v) {
   const crowdP = avg([v.kalshi ? v.kalshi[H] / ((v.kalshi[H] + v.kalshi[A]) || 1) : null, v.poly ? v.poly[H] : null]);
   const crowdName = v.kalshi && v.poly ? 'Kalshi/Poly' : v.kalshi ? 'Kalshi' : v.poly ? 'Polymarket' : 'Kalshi';
   // moneyline
-  let mktML = null; if (v.live.ml && v.live.ml.home && v.live.ml.away) { const ih = 1 / americanToDecimal(v.live.ml.home), ia = 1 / americanToDecimal(v.live.ml.away); mktML = ih / (ih + ia); }
+  const mlp = (v.live.ml && v.live.ml.home && v.live.ml.away) ? v.live.ml : (g.ml_home && g.ml_away ? { home: g.ml_home, away: g.ml_away } : null);
+  let mktML = null; if (mlp) { const ih = 1 / americanToDecimal(mlp.home), ia = 1 / americanToDecimal(mlp.away); mktML = ih / (ih + ia); }
   else if (v.hasLine) mktML = ncdf(v.mkt / s);
   const mlM = v.pHomeModel;
   rows.push({ grp: 'Moneyline', lab: `${H} ML`, m: mlM, k: mktML, c: crowdP });
@@ -266,7 +267,7 @@ function marketFor(lg, g) {
   const live = state.live[lg][gameId(lg, g)];
   if (live && live.spread !== null && live.spread !== undefined) return { spread: live.spread, total: live.total, src: 'live', ml: live.ml };
   const snap = lg === 'nfl' ? g.current_spread : g.market_spread;
-  return { spread: snap, total: g.total ?? g.total_line, src: 'snapshot', ml: null };
+  return { spread: snap, total: g.total ?? g.total_line, src: 'snapshot', ml: (g.ml_home && g.ml_away) ? { home: g.ml_home, away: g.ml_away } : null };
 }
 function view(lg, g) {
   const m = marketFor(lg, g); const s = SIGMA[lg]; const a = ALPHA[lg];
@@ -285,7 +286,7 @@ function view(lg, g) {
   let mlHome = m.ml && m.ml.home ? americanToDecimal(m.ml.home) : null, mlAway = m.ml && m.ml.away ? americanToDecimal(m.ml.away) : null;
   if (!mlHome || !mlAway) { const ph = pHomeMkt ?? pHomeModel; mlHome = 1 / Math.min(0.99, ph + VIG / 2); mlAway = 1 / Math.min(0.99, (1 - ph) + VIG / 2); }
   const final = !!live.final || (g.result !== null && g.result !== undefined);
-  const started = !final && (g.started === true || !!live.scoreText);
+  const started = !final && (g.started === true || !!live.scoreText || !!g.score_text);
   const vv = { g, lg, id: gameId(lg, g), model, mkt, hasLine, blend, edge, tier, pHomeModel, pHomeBlend, pHomeMkt, pHomeCover, pickHome, live, kalshi: k, poly, final, started,
     locked: final || started, open: (g.open_spread !== undefined && g.open_spread !== null) ? g.open_spread : null, src: m.src, total: m.total, mlHome, mlAway, s };
   vv.conv = conviction(vv);
@@ -347,7 +348,7 @@ function kickoff(lg, g) {
 }
 function cardHTML(v) {
   const g = v.g, lg = v.lg; const rk = t => (lg === 'ncaa' && (t === g.home ? g.ap_rank_home : g.ap_rank_away)) ? `<span class="rank">#${t === g.home ? g.ap_rank_home : g.ap_rank_away}</span>` : '';
-  const score = v.live.state ? `<span>${v.live.state}${v.live.scoreText ? ' · ' + v.live.scoreText : ''}</span>` : (v.final ? `<span>Final · ${g.home} ${sign(g.result, 0)}${v.hasLine ? ' · ' + (Math.sign(g.result - v.mkt) * (v.edge > 0 ? 1 : -1) > 0 ? 'model side covered' : g.result === v.mkt ? 'push' : 'model side lost') : ''}</span>` : (v.started ? '<span>In progress</span>' : ''));
+  const score = v.live.state ? `<span>${v.live.state}${v.live.scoreText ? ' · ' + v.live.scoreText : ''}</span>` : (v.final ? `<span>Final · ${g.home} ${sign(g.result, 0)}${v.hasLine ? ' · ' + (Math.sign(g.result - v.mkt) * (v.edge > 0 ? 1 : -1) > 0 ? 'model side covered' : g.result === v.mkt ? 'push' : 'model side lost') : ''}</span>` : (v.started ? `<span>${g.score_text ? g.score_text : 'In progress'}</span>` : ''));
   const side = state.side[v.id] || (v.pickHome ? 'home' : 'away');
   const pickTeam = side === 'home' ? g.home : g.away;
   const spreadLeg = v.hasLine ? legFor(v, 'spread', side) : null, mlLeg = legFor(v, 'ml', side);
@@ -690,8 +691,8 @@ function renderSlip() {
 }
 function renderBanner() {
   const b = document.getElementById('banner'); const s = state.sources;
-  const kAsof = DATA.kalshi_asof ? ptTime(DATA.kalshi_asof) : 'last rebuild';
-  const bits = ['espn', 'kalshi', 'polymarket'].map(k => `${k}: ${s[k] === true ? 'live' : k === 'kalshi' ? 'server refresh ' + kAsof : s[k] === false ? 'unreachable' : 'pending'}`).join(' · ');
+  const kAsof = DATA.kalshi_asof ? ptTime(DATA.kalshi_asof) : 'last rebuild'; const eAsof = DATA.espn_asof ? ptTime(DATA.espn_asof) : 'last rebuild';
+  const bits = ['espn', 'kalshi', 'polymarket'].map(k => `${k}: ${s[k] === true ? 'live' : k === 'kalshi' ? 'server refresh ' + kAsof : k === 'espn' ? 'server refresh ' + eAsof : s[k] === false ? 'unreachable' : 'pending'}`).join(' · ');
   const anyLive = LIVE_FETCH && Object.values(s).some(Boolean);
   if (!LIVE_FETCH || !state.fetchedAt) document.getElementById('status').textContent = 'Rebuilt ' + ptTime(DATA.generated_at);
   b.innerHTML = `<div class="banner">${anyLive ? 'Odds refreshed ' + state.fetchedAt.toLocaleTimeString() + ' (' + bits + ').' : (LIVE_FETCH ? `Lines and prices are the <b>snapshot from the model rebuild ${ptTime(DATA.generated_at)}</b>${state.fetchedAt ? '; the live feeds did not answer (' + bits + ')' : '; checking live feeds…'}.` : `Lines, totals and prediction-market prices are the <b>snapshot built ${ptTime(DATA.generated_at)}</b>. This copy runs in a sandbox that blocks calls to outside sites; the live version is at ${PAGES_URL}`)} <b>Tap any number, chip or label</b> (the ? tiles, dotted text) for a plain-language explanation using that game's figures.</div>`;

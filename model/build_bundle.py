@@ -57,10 +57,39 @@ for r in ncaa.itertuples():
 ncaa["model_total"] = mt
 print("league avg points per team: NFL", round(L_nfl, 1), "CFB", round(L_cfb, 1))
 
+# ---- server-side ESPN snapshot: fresher lines, moneylines, scores; kickoff-based "started" flags ----
+esp = json.load(open(os.path.join(OUT, "espn_snapshot.json"))) if os.path.exists(os.path.join(OUT, "espn_snapshot.json")) else {"nfl": {}, "ncaa": {}}
+now_utc = pd.Timestamp.now(tz="UTC")
+gk = games_all[(games_all.season == 2026) & (games_all.week == 6)].copy()
+gk["kick"] = pd.to_datetime(gk.gameday + " " + gk.gametime.fillna("13:00")).dt.tz_localize("America/New_York").dt.tz_convert("UTC")
+kick = gk.set_index(["away_team", "home_team"]).kick
+def apply_espn(df, lg, line_col):
+    for c in ["started", "score_text", "ml_home", "ml_away"]:
+        if c not in df.columns: df[c] = None
+    df["started"] = df["started"].astype(object)
+    for i, r in df.iterrows():
+        rec = esp.get(lg, {}).get(f"{r.away}@{r.home}")
+        if lg == "nfl":
+            k = kick.get((r.away, r.home))
+            if k is not None and k <= now_utc: df.at[i, "started"] = True
+        if not rec: continue
+        if rec.get("spread") is not None: df.at[i, line_col] = rec["spread"]
+        if rec.get("total"): df.at[i, "total"] = rec["total"]
+        if rec.get("ml_home") and rec.get("ml_away"): df.at[i, "ml_home"], df.at[i, "ml_away"] = rec["ml_home"], rec["ml_away"]
+        if rec.get("phase") in ("in", "post"):
+            df.at[i, "started"] = True
+            df.at[i, "score_text"] = f"{r.away} {rec.get('away_score', 0)} – {r.home} {rec.get('home_score', 0)} · {rec.get('state', '')}"
+        if rec.get("completed") and pd.isna(r.result):
+            df.at[i, "result"] = rec.get("home_score", 0) - rec.get("away_score", 0)
+    return df
+w6 = apply_espn(w6, "nfl", "current_spread")
+ncaa = apply_espn(ncaa, "ncaa", "market_spread")
+espn_asof = esp.get("as_of", "")
+
 nb_w, nb_l = int((nbt.pick_cover == 1).sum()), int((nbt.pick_cover == -1).sum())
 tiers = nbt[nbt.tier != "PASS"]
 bundle = {
-  "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "kalshi_asof": kalshi_asof,
+  "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"), "kalshi_asof": kalshi_asof, "espn_asof": espn_asof,
   "nfl": {
     "week": 6, "params": nfl_p,
     "games": rows(w6),

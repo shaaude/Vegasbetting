@@ -1,0 +1,62 @@
+{
+ "as_of": "2026-10-18 17:50 UTC",
+ "nfl": {
+  "TEN@IND": {
+   "state": "Q2 11:07",
+   "phase": "in",
+   "completed": false,
+   "home_score": 7,
+   "away_score": 0
+  },
+  "CAR@PHI": {
+   "state": "End Q1",
+   "phase": "in",
+   "completed": false,
+   "home_score": 0,
+   "away_score": 3
+  },
+  "PIT@TB": {
+   "state": "Q2 13:52",
+   "phase": "in",
+   "completed": false,
+   "home_score": 10,
+   "away_score": 0
+  },
+  "BAL@CLE": {
+   "state": "Q2 11:37",
+   "phase": "in",
+   "completed": false,
+   "home_score": 0,
+   "away_score": 10
+  },
+  "NO@NYG": {
+   "state": "Q2 11:21",
+   "phase": "in",
+   "completed": false,
+   "home_score": 7,
+   "away_score": 0
+  },
+  "CHI@ATL": {
+   "state": "Q2 10:41",
+   "phase": "in",
+   "completed": false,
+   "home_score": 0,
+   "away_score": 14
+  },
+  "NYJ@NE": {
+   "state": "Q2 12:30",
+   "phase": "in",
+   "completed": false,
+   "home_score": 7,
+   "away_score": 3
+  },
+  "HOU@JAX": {
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
+   "home_score": 31,
+   "away_score": 34
+  }
+ },
+ "ncaa": {}
+}

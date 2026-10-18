@@ -20,19 +20,25 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install
-        run: pip install pandas
+        run: pip install pandas pyarrow
+      - name: Small data files
+        run: |
+          mkdir -p /tmp/nfl /tmp/cfb
+          curl -sSfL -o /tmp/nfl/games.csv https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv
+          curl -sSfL -o /tmp/cfb/schedules_2026.parquet https://raw.githubusercontent.com/sportsdataverse/cfbfastR-data/main/schedules/parquet/cfb_schedules_2026.parquet
       - name: Refresh Kalshi and rebuild page
         working-directory: model
         run: |
           python fetch_kalshi.py
+          python fetch_espn.py
           python build_bundle.py
           python build_page.py --live --out ../docs/index.html
       - name: Commit
         run: |
           git config user.name "edge-board-bot"
           git config user.email "edge-board-bot@users.noreply.github.com"
-          git add docs/index.html model/kalshi_snapshot.json model/output/app_data.json
+          git add -A docs model
           git diff --cached --quiet && echo "no changes" && exit 0
-          git commit -m "Refresh Kalshi prices $(date -u +'%Y-%m-%d %H:%M UTC')"
-          git pull --rebase -q origin main
+          git commit -q -m "Refresh odds and scores $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git pull --rebase --autostash -X theirs -q origin main
           git push
