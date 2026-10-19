@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-19 00:10 UTC",
+ "as_of": "2026-10-19 05:16 UTC",
  "nfl": {
   "TEN@IND": {
    "state": "Final",
@@ -88,12 +88,14 @@
    "away_score": 33
   },
   "DAL@GB": {
-   "state": "10/18 - 8:20 PM EDT",
-   "phase": "pre",
-   "completed": false,
+   "state": "Final",
+   "phase": "post",
+   "completed": true,
    "spread": -1.5,
    "total": 53.5,
-   "odds_asof": "2026-10-19 00:10 UTC"
+   "odds_asof": "2026-10-19 00:10 UTC",
+   "home_score": 23,
+   "away_score": 13
   },
   "SEA@DEN": {
    "state": "Final/OT",
@@ -108,7 +110,7 @@
    "completed": false,
    "spread": 7.5,
    "total": 52.5,
-   "odds_asof": "2026-10-19 00:10 UTC"
+   "odds_asof": "2026-10-19 05:16 UTC"
   }
  },
  "ncaa": {
