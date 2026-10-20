@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-19 22:18 UTC",
+ "as_of": "2026-10-20 00:42 UTC",
  "nfl": {
   "TEN@IND": {
    "state": "Final",
@@ -105,12 +105,14 @@
    "away_score": 14
   },
   "WAS@SF": {
-   "state": "10/19 - 8:15 PM EDT",
-   "phase": "pre",
+   "state": "4:09 - 1st",
+   "phase": "in",
    "completed": false,
    "spread": 7.5,
    "total": 52.5,
-   "odds_asof": "2026-10-19 22:18 UTC"
+   "odds_asof": "2026-10-19 22:18 UTC",
+   "home_score": 13,
+   "away_score": 3
   }
  },
  "ncaa": {
